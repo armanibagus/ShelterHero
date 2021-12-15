@@ -51,8 +51,8 @@
 
                             @endphp
                             <!-- Add the bg color to the header using any of the bg-* classes -->
-                            <div class="">
-                                <img src="{{ asset('storage/images/'.$title) }}" style="width: 100%; height: auto; border-radius: 2%">
+                            <div style="text-align: center">
+                                <img src="{{ asset('storage/images/'.$title) }}" class="img-fluid" alt="Responsive image" style="border-radius: 2%; object-fit: cover">
                             </div>
                             <div class="card-body text-center">
                                 <strong class="text-lg">{{$pet->nickname}}</strong>
