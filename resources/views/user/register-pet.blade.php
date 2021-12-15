@@ -176,15 +176,15 @@
                                                 </span>
                                                 @enderror
                                             </div>
-
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-12">
-                                                <div class="mt-1 text-center">
-                                                    <div class="images-preview-div"> </div>
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="mt-1 text-center">
+                                                        <div class="images-preview-div"> </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
+
 
                                          {{--Register button--}}
                                         <div>
