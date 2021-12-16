@@ -18,9 +18,12 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Auth::routes();
+//Auth::routes();
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+// new auth routes with email verification
+Auth::routes(['verify' => true]);
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home')->middleware('verified');
 
 // Login
 Route::get('/user/home', [App\Http\Controllers\HomeController::class, 'menuUser'])->name('home-user')->middleware('user');
