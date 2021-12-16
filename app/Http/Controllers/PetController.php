@@ -63,6 +63,7 @@ class PetController extends Controller
      */
     public function store(Request $request)
     {
+        // validate the input
         $request->validate([
             'nickname' => ['required', 'string', 'max:255'],
             'petType' => ['required', 'string'],
@@ -75,6 +76,7 @@ class PetController extends Controller
             'images.*' => 'mimes:jpg,png,jpeg,gif,svg'
         ]);
 
+        // get the images input
         if ($request->hasfile('images')) {
             foreach ($request->file('images') as $key => $file) {
                 // get
@@ -86,14 +88,17 @@ class PetController extends Controller
             }
         }
 
-        // create two object in the same time
+        // create pet object
         $data = Pet::create($request->all());
+
+        // insert image to database
         Image::insert($insert);
 
-        // get pet id
+        // update pet_id (foreign key) in images database
         $idPet = $data->id;
         Image::where('pet_id', null)->update(['pet_id' => $idPet]);
 
+        // redirect to registration form
         return redirect()->route('pets.create')
             ->with('success', 'Pet successfully registered!');
     }
@@ -117,12 +122,12 @@ class PetController extends Controller
      */
     public function edit(Pet $pet)
     {
+        // validate the authorities of the edit form
         if (auth()->user()->role == 'pet_shelter') {
             return view('pet_shelter.edit-pet', compact('pet'));
         } else {
             return redirect()->route('home');
         }
-
     }
 
     /**
