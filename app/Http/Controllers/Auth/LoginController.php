@@ -47,8 +47,10 @@ class LoginController extends Controller
     }
 
     public function login(Request $request) {
+        // get the input
         $input = $request->all();
 
+        // validate input
         $this->validate($request, [
             'username' => 'required',
             'password' => 'required'
