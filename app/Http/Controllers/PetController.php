@@ -45,9 +45,9 @@ class PetController extends Controller
      */
     public function create()
     {
+        // validate the authorities of the register pet form
         if (auth()->user()->role == 'user') {
             $pets = Pet::paginate();
-
             return view('user.register-pet', compact('pets'))
                 ->with('i', (request()->input('page', 1) - 1) * 5);
         } else {
@@ -139,6 +139,7 @@ class PetController extends Controller
      */
     public function update(Request $request, Pet $pet)
     {
+        // validate the input
         if ($request['status'] === 'Confirmed') {
             $request->validate([
                 'status' => 'required'
@@ -161,8 +162,10 @@ class PetController extends Controller
             ]);
         }
 
+        // update pet information
         $pet->update($request->all());
 
+        // redirect to pet registration page
         return redirect()->route('pets.index')
             ->with('success', 'Pet successfully updated!');
     }
