@@ -17,6 +17,7 @@ class PetController extends Controller
      */
     public function index()
     {
+        // differentiate the index view by users role and command
         if (auth()->user()->role == 'pet_shelter') {
             $pets = DB::table('users')
                 ->join('pets', 'pets.user_id', '=', 'users.id')
@@ -25,7 +26,8 @@ class PetController extends Controller
 
             return view('pet_shelter.pet-registration', compact('pets'))
                 ->with('i', (request()->input('page', 1) - 1) * 5);
-        } else if(auth()->user()->role == 'user') {
+        }
+        else if(auth()->user()->role == 'user') {
             $pets = DB::table('users')
                 ->join('pets', 'pets.shelter_id', '=', 'users.id')
                 ->select(['pets.*', 'users.name', 'users.address'])
