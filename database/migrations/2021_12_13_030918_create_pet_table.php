@@ -21,7 +21,7 @@ class CreatePetTable extends Migration
             $table->enum('petType', ['Dog','Cat','Bird','Rabbit', 'Fish']);
             $table->enum('sex', ['Male','Female']);
             $table->integer('age');
-            $table->enum('size', ['small', 'medium', 'large']);
+            $table->enum('size', ['Small', 'Medium', 'Large']);
             $table->decimal('weight');
             $table->string('condition', 500);
             $table->enum('status', ['Pending', 'Picked Up', 'Confirmed'])->default('Pending');

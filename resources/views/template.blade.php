@@ -21,8 +21,9 @@
     <link rel="stylesheet" href="{{asset('artefact/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css')}}">
     <link rel="stylesheet" href="{{asset('artefact/plugins/datatables-responsive/css/responsive.bootstrap4.min.css')}}">
     <link rel="stylesheet" href="{{asset('artefact/plugins/datatables-buttons/css/buttons.bootstrap4.min.css')}}">
+    <link rel="stylesheet" href="{{asset('artefact/plugins/icheck-bootstrap/icheck-bootstrap.min.css')}}">
     <!-- SweetAlert2 -->
-    <link rel="stylesheet" href="{{asset('artefact/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css')}}">
+    {{--<link rel="stylesheet" href="{{asset('artefact/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css')}}">--}}
     <!-- overlayScrollbars -->
     <link rel="stylesheet" href="{{asset('artefact/plugins/overlayScrollbars/css/OverlayScrollbars.min.css')}}">
     <!-- Theme style -->
@@ -151,7 +152,7 @@
 <script src="{{asset('artefact/plugins/datatables-buttons/js/buttons.print.min.js')}}"></script>
 <script src="{{asset('artefact/plugins/datatables-buttons/js/buttons.colVis.min.js')}}"></script>
 <!-- SweetAlert2 -->
-<script src="{{asset('artefact/plugins/sweetalert2/sweetalert2.min.js')}}"></script>
+{{--<script src="{{asset('artefact/plugins/sweetalert2/sweetalert2.min.js')}}"></script>--}}
 <!-- App -->
 <script src="{{asset('artefact/dist/js/adminlte.min.js')}}"></script>
 <script>
@@ -172,6 +173,21 @@
 
         $('#images').on('change', function() {
             previewImages(this, 'div.images-preview-div');
+        });
+        $('#proof_of_img').on('change', function() {
+            previewImages(this, 'div.proof_of_img-preview-div');
+        });
+        $('#birth_certificate_img').on('change', function() {
+            previewImages(this, 'div.birth_certificate_img-preview-div');
+        });
+        $('#appropriate_img').on('change', function() {
+            previewImages(this, 'div.appropriate_img-preview-div');
+        });
+        $('#donation_img').on('change', function() {
+            previewImages(this, 'div.donation_img-preview-div');
+        });
+        $('#receipt_img').on('change', function() {
+            previewImages(this, 'div.receipt_img-preview-div');
         });
 
         $("#dataTable1").DataTable({
@@ -200,6 +216,15 @@
             "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
         })/*.buttons().container().appendTo('#example3_wrapper .col-md-6:eq(0)')*/;
     });
+
+    $(document).ready(function() {
+        $('.product-image-thumb').on('click', function () {
+            var $image_element = $(this).find('img')
+            $('.product-image').prop('src', $image_element.attr('src'))
+            $('.product-image-thumb.active').removeClass('active')
+            $(this).addClass('active')
+        })
+    })
 </script>
 </body>
 </html>

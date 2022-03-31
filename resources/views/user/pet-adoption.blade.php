@@ -1,7 +1,7 @@
 @extends('template')
 
 @section('page-title')
-    {{__('View Lost Pet')}}
+    {{__('Pet Adoption')}}
 @endsection
 
 @section('content-wrapper')
@@ -11,7 +11,7 @@
             <div class="container-fluid">
                 <div class="row mb-2">
                     <div class="col-sm-6">
-                        <h1>Lost Pets</h1>
+                        <h1>Pet Adoption</h1>
                     </div>
                     <div class="col-sm-6">
                         <ol class="breadcrumb float-sm-right">
@@ -19,7 +19,7 @@
                                 <a href="{{url('/user/home')}}">Main Menu</a>
                             </li>
                             <li class="breadcrumb-item active">
-                                Lost Pets
+                                Pet Adoption
                             </li>
                         </ol>
                     </div>
@@ -30,20 +30,21 @@
         <!-- Main content -->
         <section class="content">
             <div class="row">
-                @foreach($lost_pets as $pet)
+                @foreach($pets as $pet)
                     <div class="col-lg-3">
                         <a class="btn" style="padding: 0" href="{{route('pets.show', $pet->id)}}">
                             <div class="card card-widget widget-user">
-                                @php
-                                    $images = DB::table('images')->get();
-                                    $title = '';
-                                    foreach ($images as $image)
-                                      if($image->pet_id == $pet->id){
-                                        $title = trim(str_replace("public/images/","", $image->path));
-                                        break;
-                                      }
-                                @endphp
-                                <!-- Add the bg color to the header using any of the bg-* classes -->
+                            @php
+                                $images = DB::table('images')->get();
+                                $title = '';
+                                foreach ($images as $image) {
+                                  if($image->pet_id == $pet->id){
+                                    $title = trim(str_replace("public/images/","", $image->path));
+                                    break;
+                                  }
+                                }
+                            @endphp
+                            <!-- Add the bg color to the header using any of the bg-* classes -->
                                 <div style="text-align: center">
                                     <img src="{{ asset('storage/images/'.$title) }}" class="img-fluid" alt="Responsive image" style="border-radius: 2%; object-fit: cover; height: 280px; width: 500px">
                                 </div>
@@ -61,6 +62,7 @@
                                     </div>
                                 </div>
                             </div>
+                            <!-- /.widget-user -->
                         </a>
                     </div>
                 @endforeach
@@ -68,5 +70,4 @@
             <!-- /.col -->
         </section>
     </div>
-
 @endsection

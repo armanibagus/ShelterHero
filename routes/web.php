@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\PetController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,6 +30,24 @@ Route::get('/volunteer/home', [App\Http\Controllers\HomeController::class, 'menu
 Route::get('/pet-shelter/home', [App\Http\Controllers\HomeController::class, 'menuPetShelter'])->name('home-pet-shelter')->middleware('petShelter');
 
 // Pet Controller
-Route::resource('pets', PetController::class);
-//Route::get('/pets/{id}/edit', [App\Http\Controllers\PetController::class, 'edit'])->name('pet-edit');
+Route::get('/pets/lost-pets', [\App\Http\Controllers\PetController::class, 'lostPets'])->name('pets.lostPets')->middleware('user');;
+Route::get('/pets/pet-registration', [\App\Http\Controllers\PetController::class, 'viewPetRegis'])->name('pets.viewPetRegis')->middleware('petShelter');
+Route::get('/pets/my-pets', [\App\Http\Controllers\PetController::class, 'myPets'])->name('pets.myPets')->middleware('petShelter');
 
+Route::resource('pets', \App\Http\Controllers\PetController::class);
+
+// Adoption Controller
+Route::resource('adoptions', \App\Http\Controllers\AdoptionController::class);
+
+// Lost Pet Claim Controller
+Route::resource('lost-pet-claims', \App\Http\Controllers\LostPetClaimsController::class);
+
+// Donation Controller
+Route::resource('donations', \App\Http\Controllers\DonationController::class);
+
+// Donate Controller
+Route::resource('donates', \App\Http\Controllers\DonateController::class);
+
+// User Controller
+Route::get('/users/pet-shelter', [\App\Http\Controllers\UserController::class, 'allPetShelter'])->name('users.view-pet-shelters');
+Route::resource('users', \App\Http\Controllers\UserController::class);

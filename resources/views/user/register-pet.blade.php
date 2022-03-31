@@ -128,11 +128,11 @@
                                         {{-- Size Form --}}
                                         <div class="form-group">
                                             <label id="sizeLabel" class="mb-1">Size</label>
-                                            <select id="size" type="text" name="size" autocomplete="size" class="form-control @error('sex') is-invalid @enderror" required>
+                                            <select id="size" type="text" name="size" autocomplete="size" class="form-control @error('size') is-invalid @enderror" required>
                                                 <option selected disabled value="" >---[Select one]---</option>
-                                                <option value="small">Small</option>
-                                                <option value="medium">Medium</option>
-                                                <option value="large">Large</option>
+                                                <option value="Small">Small</option>
+                                                <option value="Medium">Medium</option>
+                                                <option value="Large">Large</option>
                                             </select>
                                         </div>
 
@@ -168,7 +168,7 @@
                                             <label id="petImages" class="mb-1">Pet Images</label>
 
                                             <div class="custom-file">
-                                                <input id="images" type="file" name="images[]" class="custom-file-input @error('images') is-invalid @enderror" placeholder="Choose images" multiple>
+                                                <input id="images" type="file" name="images[]" class="custom-file-input @error('images') is-invalid @enderror" placeholder="Choose images" multiple required>
                                                 <label class="custom-file-label" for="customFile">Choose images</label>
                                                 @error('images')
                                                 <span class="invalid-feedback" role="alert">
@@ -193,7 +193,7 @@
                                                 {{ __('Register') }}
                                             </button>
                                         </div>
-                                    @if($i>0)
+                                    @if($i<1)
                                         </fieldset>
                                     @endif
                                     </form>

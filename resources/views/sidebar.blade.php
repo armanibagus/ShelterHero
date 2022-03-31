@@ -87,26 +87,26 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
+                        <a href="{{route('adoptions.index')}}" class="nav-link {{Request::is('adoptions') /*|| (Route::current()->getName() == 'pets.show') || Request::is('adoptions/create')*/ ? 'active' : ''}}">
                             <i class="nav-icon fas fa-hand-holding-heart"></i>
                             <p>Pet Adoption</p>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
+                        <a href="{{route('lost-pet-claims.index')}}" class="nav-link {{Request::is('lost-pet-claims') /*|| Request::is('lost-pet-claims/create')*/ ? 'active' : ''}}">
                             <i class="nav-icon fas fa-check-circle"></i>
                             <p>Lost Pet Claim</p>
                         </a>
                     </li>
                     <li class="nav-header">Donation</li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
+                        <a href="{{route('donations.index')}}" class="nav-link {{Request::is('donations') ? 'active' : ''}}">
                             <i class="nav-icon fas fa-donate"></i>
                             <p>Donate</p>
                         </a>
                     </li>
                     <li class="nav-header">Views</li>
-                    <li class="nav-item {{Request::is('pets') ? 'menu-open' : ''}}">
+                    <li class="nav-item {{Request::is('pets/lost-pets') || Request::is('pets') || Request::is('users/pet-shelter') ? 'menu-open' : ''}}">
                         <a href="#" class="nav-link ">
                                 <i class="nav-icon fas fa-paw"></i>
                             <p>
@@ -116,19 +116,19 @@
                         </a>
                         <ul class="nav nav-treeview">
                             <li class="nav-item">
-                                <a href="{{route('pets.index')}}" class="nav-link {{Request::is('pets') ? 'active' : ''}}">
+                                <a href="{{route('pets.lostPets')}}" class="nav-link {{Request::is('pets/lost-pets') ? 'active' : ''}}">
                                     <i class="far fa-arrow-alt-circle-right nav-icon"></i>
                                     <p>Lost Pets</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
+                                <a href="{{route('pets.index')}}" class="nav-link {{Request::is('pets') ? 'active' : ''}}">
                                     <i class="far fa-arrow-alt-circle-right nav-icon"></i>
                                     <p>All Pets</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
+                                <a href="{{route('users.view-pet-shelters')}}" class="nav-link {{Request::is('users/pet-shelter') ? 'active' : ''}}">
                                     <i class="far fa-arrow-alt-circle-right nav-icon"></i>
                                     <p>Pet Shelters</p>
                                 </a>
@@ -150,7 +150,7 @@
                         </a>
                     </li>
                     <li class="nav-header">Views</li>
-                    <li class="nav-item">
+                    <li class="nav-item {{Request::is('pets') || Request::is('users/pet-shelter') ? 'menu-open' : ''}}">
                         <a href="#" class="nav-link">
                             <i class="nav-icon fas fa-paw"></i>
                             <p>
@@ -160,13 +160,13 @@
                         </a>
                         <ul class="nav nav-treeview">
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
+                                <a href="{{route('pets.index')}}" class="nav-link {{Request::is('pets') ? 'active' : ''}}">
                                     <i class="far fa-arrow-alt-circle-right nav-icon"></i>
                                     <p>All Pets</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
+                                <a href="{{route('users.view-pet-shelters')}}" class="nav-link {{Request::is('users/pet-shelter') ? 'active' : ''}}">
                                     <i class="far fa-arrow-alt-circle-right nav-icon"></i>
                                     <p>Pet Shelters</p>
                                 </a>
@@ -182,32 +182,78 @@
                 @elseif(Auth::user()->role === 'pet_shelter')
                     <li class="nav-header">Requests</li>
                     <li class="nav-item">
-                        <a href="{{route('pets.index')}}" class="nav-link {{Request::is('pets')||Request::is('pets/*/edit') ? 'active' : ''}}">
+                        <a href="{{route('pets.viewPetRegis')}}" class="nav-link {{Request::is('pets/pet-registration') ? 'active' : ''}}">
                             <i class="nav-icon fas fa-clipboard-list"></i>
                             <p>Pet Registration</p>
                         </a>
                     </li>
+                    @php
+                        $allPets = DB::table('pets')
+                                        ->where([
+                                          ['shelter_id', '=', auth()->user()->id],
+                                          ['status', '=', 'Confirmed']
+                                        ])->latest()->get();
+                        $allAdoptions = DB::table('adoptions')
+                                          ->where('shelter_id', '=', Auth::user()->id)->get();
+                        $adoptPets = \App\Http\Controllers\PetController::validatePets($allPets, $allAdoptions);
+                        $totalPending = 0;
+                        foreach ($adoptPets as $pet) {
+                          $date = new \Carbon\Carbon($pet->pickUpDate);
+                          $expiredate = $date->addDays(7);
+                          if (\Carbon\Carbon::today() > $expiredate) {
+                            $allAdoptions = DB::table('adoptions')
+                                              ->where('status', '=', 'Pending')
+                                              ->where('shelter_id', '=', Auth::user()->id)
+                                              ->where('pet_id', '=', $pet->id)->get();
+                            $totalPending += count($allAdoptions);
+                          }
+                        }
+                    @endphp
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
+                        <a href="{{route('adoptions.index')}}" class="nav-link {{Request::is('adoptions') ? 'active' : ''}}">
                             <i class="nav-icon fas fa-clipboard-list"></i>
                             <p>Adoption Request</p>
+                            <span class="badge badge-danger right">{{ $totalPending != 0 ? $totalPending : '' }}</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
+                        <a href="{{route('lost-pet-claims.index')}}" class="nav-link {{Request::is('lost-pet-claims') ? 'active' : ''}}">
                             <i class="nav-icon fas fa-clipboard-list"></i>
                             <p>Lost Pet Claim</p>
+                            @php
+                                $allPets = DB::table('pets')
+                                            ->where([
+                                              ['shelter_id', '=', auth()->user()->id],
+                                              ['status', '=', 'Confirmed']
+                                            ])->latest()->get();
+                                $allClaims = DB::table('lost_pet_claims')
+                                            ->where('shelter_id', '=', Auth::user()->id)->latest()->get();
+                                $lostPets = \App\Http\Controllers\PetController::validatePets($allPets, $allClaims);
+                                $totalPending = 0;
+                                foreach ($lostPets as $pet) {
+                                  $date = new \Carbon\Carbon($pet->pickUpDate);
+                                  $expiredate = $date->addDays(7);
+                                  if (\Carbon\Carbon::today() < $expiredate) {
+                                    $pendingClaims = DB::table('lost_pet_claims')
+                                                  ->where('status', '=', 'Pending')
+                                                  ->where('shelter_id', '=', Auth::user()->id)
+                                                  ->where('pet_id', '=', $pet->id)->get();
+                                    $totalPending += count($pendingClaims);
+                                  }
+                                }
+                            @endphp
+                            <span class="badge badge-danger right">{{ $totalPending != 0 ? $totalPending : '' }}</span>
                         </a>
                     </li>
                     <li class="nav-header">Donation</li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <i class="nav-icon fas fa-hand-holding-usd"></i>
+                        <a href="{{ route('donations.create') }}" class="nav-link {{Request::is('donations/create') ? 'active' : ''}}">
+                            <i class="nav-icon fas fa-hand-holding-heart"></i>
                             <p>Open Donation</p>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
+                        <a href="{{route('donations.index')}}" class="nav-link {{Request::is('donations') ? 'active' : ''}}">
                             <i class="nav-icon fas fa-history"></i>
                             <p>Donation History</p>
                         </a>
@@ -221,9 +267,15 @@
                     </li>
                     <li class="nav-header">Views</li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
+                        <a href="{{route('pets.index')}}" class="nav-link {{Request::is('pets') ? 'active' : ''}}">
                             <i class="fas fa-paw nav-icon"></i>
                             <p>All Pets</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{route('pets.myPets')}}" class="nav-link {{Request::is('pets/my-pets') ? 'active' : ''}}">
+                            <i class="fas fa-paw nav-icon"></i>
+                            <p>My Pets</p>
                         </a>
                     </li>
                 @else

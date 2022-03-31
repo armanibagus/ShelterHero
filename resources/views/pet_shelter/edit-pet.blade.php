@@ -141,7 +141,7 @@
                                             </div>
                                         </div>
                                         <div class="modal-footer">
-                                            <a class="btn btn-default float-right" href="{{route('pets.index')}}">{{ __('Cancel') }}</a>
+                                            <a class="btn btn-default float-right" href="{{route('pets.viewPetRegis')}}">{{ __('Cancel') }}</a>
                                             <button type="submit" class="btn btn-success">{{$pet->status === 'Pending' ? 'Pick Up' : 'Confirm'}}</button>
                                         </div>
                                     </form>

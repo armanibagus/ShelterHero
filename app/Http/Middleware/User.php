@@ -19,6 +19,7 @@ class User
         if (auth()->user()->role == 'user') {
             return $next($request);
         }
-        return redirect('home')->with('error', "Oops! Only Regular User can access this menu.");
+        return abort(403, 'Unauthorized action.');
+//        return redirect('home')->with('error', "Oops! Only Regular User can access this menu.");
     }
 }

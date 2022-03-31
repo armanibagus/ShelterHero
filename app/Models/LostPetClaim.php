@@ -5,11 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Adoption extends Model
+class LostPetClaim extends Model
 {
     use HasFactory;
 
-    protected $table = 'adoptions';
+    protected $table = 'lost_pet_claims';
     public $timestamps = true;
 
     protected $fillable = [
@@ -18,7 +18,6 @@ class Adoption extends Model
         'pet_id',
         'user_idNumber',
         'name',
-        'adopter_age',
         'email',
         'phone',
         'address',
@@ -26,16 +25,6 @@ class Adoption extends Model
         'state',
         'country',
         'postal',
-        'occupation',
-        'salary',
-        'no_of_pet_owned',
-        'pets_description',
-        'home_question',
-        'rent_time',
-        'animal_permission',
-        'rehomed_question',
-        'rehomed_description',
-        'family_member',
         'other_information',
         'status',
         'delivery_date',

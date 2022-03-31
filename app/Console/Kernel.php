@@ -2,6 +2,8 @@
 
 namespace App\Console;
 
+use App\Http\Controllers\AdoptionController;
+use App\Http\Controllers\LostPetClaimsController;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -15,7 +17,12 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        $schedule->call(function () {
+            LostPetClaimsController::rejectClaim();
+        })->everyMinute();
+        $schedule->call(function () {
+            AdoptionController::autoRejectAdoption();
+        })->everyMinute();
     }
 
     /**

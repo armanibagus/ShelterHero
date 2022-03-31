@@ -19,6 +19,7 @@ class Volunteer
         if (auth()->user()->role == 'volunteer') {
             return $next($request);
         }
-        return redirect('home')->with('error', "Oops! Only Volunteer can access this menu.");
+        return abort(403, 'Unauthorized action.');
+//        return redirect('home')->with('error', "Oops! Only Volunteer can access this menu.");
     }
 }

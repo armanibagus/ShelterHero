@@ -4,12 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Models\Image;
 use App\Models\Pet;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 
 class PetController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('verified');
+        $this->middleware('user')->only('create');
+        $this->middleware('petShelter')->only('edit');
+    }
     /**
      * Display a listing of the resource.
      *
@@ -17,27 +23,150 @@ class PetController extends Controller
      */
     public function index()
     {
-        // differentiate the index view by users role and command
-        if (auth()->user()->role == 'pet_shelter') {
-            $pets = DB::table('users')
-                ->join('pets', 'pets.user_id', '=', 'users.id')
-                ->select(['pets.*', 'users.name', 'users.address'])
-                ->paginate(5);
-
-            return view('pet_shelter.pet-registration', compact('pets'))
-                ->with('i', (request()->input('page', 1) - 1) * 5);
-        }
-        else if(auth()->user()->role == 'user') {
+        if(auth()->user()->role == 'user'
+            || auth()->user()->role == 'pet_shelter'
+            || auth()->user()->role == 'volunteer') {
+            // get all pets data from database
             $pets = DB::table('users')
                 ->join('pets', 'pets.shelter_id', '=', 'users.id')
                 ->select(['pets.*', 'users.name', 'users.address'])
-                ->latest()->paginate(5);
-
-            return view('user.view-lost-pet', compact('pets'))
-                ->with('i', (request()->input('page', 1) - 1) * 5);
-        } else {
-            return redirect()->route('home');
+                ->latest()->get();
+            // get all lost pet claims data from database
+            $petClaims = DB::table('lost_pet_claims')->get();
+            // get all adoptions data from database
+            $petAdopt = DB::table('adoptions')->get();
+            // filter pets by lost pet claims
+            $filter_pets1 = $this->validatePets($pets, $petClaims);
+            // filter pets by adoptions
+            $filter_pets2 = $this->validatePets($filter_pets1, $petAdopt);
+            // filter pets status must be 'Confirmed'
+            $allPets = array();
+            foreach ($filter_pets2 as $pet) {
+                if ($pet->status == 'Confirmed') {
+                    $allPets[] = $pet;
+                }
+            }
+            // display
+            return view('general.pets-view', compact('allPets'));
         }
+        else {
+            return abort(404);
+        }
+    }
+
+    public function myPets()
+    {
+        if (auth()->user()->role == 'pet_shelter') {
+            $allPets = DB::table('users')
+                ->join('pets', 'pets.shelter_id', '=', 'users.id')
+                ->select(['pets.*', 'users.name', 'users.address'])
+                ->where([
+                    ['shelter_id', '=', auth()->user()->id],
+                    ['status', '=', 'Confirmed']
+                ])
+                ->latest()->get();
+            $table_adopt = DB::table('adoptions')->get();
+            $table_claim = DB::table('lost_pet_claims')->get();
+
+            $adopted_pets = $this->getAcceptedPet($allPets, $table_adopt);
+            $claimed_pets = $this->getAcceptedPet($allPets, $table_claim);
+
+            return view('general.pets-view',
+                compact('allPets', 'adopted_pets', 'claimed_pets'));
+        } else {
+            return abort(404);
+        }
+    }
+
+    public function lostPets()
+    {
+        if (auth()->user()->role == 'user') {
+            $lost_pets = array();
+            $pets = DB::table('users')
+                ->join('pets', 'pets.shelter_id', '=', 'users.id')
+                ->select(['pets.*', 'users.name', 'users.address'])
+                ->latest()->get();
+            $petClaims = DB::table('lost_pet_claims')->get();
+            $valid_pets = $this->validatePets($pets, $petClaims);
+            foreach ($valid_pets as $pet) {
+                $date = new \Carbon\Carbon($pet->pickUpDate);
+                $expiredate = $date->addDays(7);
+                if ($pet->status === 'Confirmed' && \Carbon\Carbon::today() < $expiredate) {
+                    $lost_pets[] = $pet;
+                }
+            }
+            return view('user.view-lost-pet', compact('lost_pets'));
+        } else {
+            return abort(404);
+        }
+    }
+
+    public function viewPetRegis() {
+        $pets = DB::table('users')
+            ->join('pets', 'pets.user_id', '=', 'users.id')
+            ->select(['pets.*', 'users.name', 'users.address'])
+            ->latest()->get();
+        return view('pet_shelter.pet-registration', compact('pets'));
+    }
+
+    // method used to get all pets by specific user
+    public function getAllPetsBy(User $user) : array
+    {
+        // get all the data from database
+        $allPets = DB::table('users')
+            ->join('pets', 'pets.shelter_id', '=', 'users.id')
+            ->select(['pets.*', 'users.name', 'users.address'])
+            ->where([['shelter_id', '=', $user->id],
+                ['status', '=', 'Confirmed']])
+            ->latest()->get();
+        $petClaims = DB::table('lost_pet_claims')->get();
+        $petAdopt = DB::table('adoptions')->get();
+
+        // filter pets by lost pet claims
+        $filter_pets2 = PetController::validatePets($allPets, $petClaims);
+        // filter pets by adoptions
+        $pets = PetController::validatePets($filter_pets2, $petAdopt);
+
+        return $pets;
+    }
+
+    public function getAcceptedPet($pets, $data) : array {
+        $filtered_pets = array();
+        foreach ($pets as $pet) {
+            foreach ($data as $param) {
+                if($pet->id == $param->pet_id) {
+                    if ($param->status === 'Accepted') {
+                        $filtered_pets[] = $pet;
+                        break;
+                    }
+                }
+            }
+        } return $filtered_pets;
+    }
+
+    // function to validate the pets data
+    public function validatePets($data1, $data2) :array {
+        $pets = array();
+        foreach ($data1 as $pet) {
+            $have_it = -1; $accepted = -1;
+            foreach ($data2 as $obj) {
+                if ($pet->id == $obj->pet_id) {
+                    $have_it = 1;
+                    if ($obj->status == 'Accepted') {
+                        $accepted = 1;
+                        break;
+                    }
+                }
+            }
+            if ($have_it < 0) {
+                $pets[] = $pet;
+            } else {
+                if ($accepted < 0) {
+                    $pets[] = $pet;
+                }
+            }
+        }
+        return $pets;
     }
 
     /**
@@ -109,11 +238,15 @@ class PetController extends Controller
      * Display the specified resource.
      *
      * @param  \App\Models\Pet  $pet
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|\Illuminate\Http\Response
      */
     public function show(Pet $pet)
     {
-        //
+        if (auth()->user()) {
+            return view('general.pet-details', compact('pet'));
+        } else {
+            return abort(404);
+        }
     }
 
     /**
@@ -168,7 +301,7 @@ class PetController extends Controller
         $pet->update($request->all());
 
         // redirect to pet registration page
-        return redirect()->route('pets.index')
+        return redirect()->route('pets.viewPetRegis')
             ->with('success', 'Pet successfully updated!');
     }
 
