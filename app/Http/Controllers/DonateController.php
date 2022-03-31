@@ -63,6 +63,7 @@ class DonateController extends Controller
             'phone' => ['required', 'string', 'max:15'],
             'payment_method' => ['required', 'string', 'max:50'],
             'donate_amount' => 'required',
+            'receipt_img' => 'required|mimes:jpg,png,jpeg,gif,svg',
             'comment' => ['required', 'string', 'max:255']
         ]);
         // image checking
