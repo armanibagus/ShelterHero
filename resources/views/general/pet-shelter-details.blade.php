@@ -124,19 +124,19 @@
 
                                             $date = new \Carbon\Carbon($pet->pickUpDate);
                                             $expiredate = $date->addDays(7);
-                                            if ($pet->status === 'Confirmed' && \Carbon\Carbon::today() < $expiredate) {
+                                            /*if ($pet->status === 'Confirmed' && \Carbon\Carbon::today() < $expiredate) {*/
                                                 foreach ($acc_claim_pets as $claim) {
                                                   if ($pet->id == $claim->id) {
                                                     $accepted = 'CLAIMED';
                                                   }
                                                 }
-                                            } else {
+                                            /*} else {*/
                                               foreach ($acc_adopt_pets as $adopt) {
                                                   if ($pet->id == $adopt->id) {
                                                     $accepted = 'ADOPTED';
                                                   }
                                                 }
-                                            }
+                                            /*}*/
                                         @endphp
                                         @if($accepted == 'ADOPTED' || $accepted == 'CLAIMED')
                                         <div class="ribbon-wrapper ribbon-lg">

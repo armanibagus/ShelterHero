@@ -169,6 +169,16 @@ class PetController extends Controller
         return $pets;
     }
 
+    public function petIsAccepted($pet, $data): bool {
+        foreach ($data as $param) {
+            if($pet->id == $param->pet_id) {
+                if ($param->status === 'Accepted') {
+                    return true;
+                }
+            }
+        } return false;
+    }
+
     /**
      * Show the form for creating a new resource.
      *

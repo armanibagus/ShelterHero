@@ -60,18 +60,15 @@
                                     $accepted = '';
                                     $date = new \Carbon\Carbon($pet->pickUpDate);
                                     $expiredate = $date->addDays(7);
-                                    if ($pet->status === 'Confirmed' && \Carbon\Carbon::today() < $expiredate) {
-                                        foreach ($claimed_pets as $claim) {
-                                          if ($pet->id == $claim->id) {
-                                            $accepted = 'CLAIMED';
-                                          }
-                                        }
-                                    } else {
-                                      foreach ($adopted_pets as $adopt) {
-                                          if ($pet->id == $adopt->id) {
-                                            $accepted = 'ADOPTED';
-                                          }
-                                        }
+                                    foreach ($claimed_pets as $claim) {
+                                      if ($pet->id == $claim->id) {
+                                        $accepted = 'CLAIMED';
+                                      }
+                                    }
+                                    foreach ($adopted_pets as $adopt) {
+                                      if ($pet->id == $adopt->id) {
+                                        $accepted = 'ADOPTED';
+                                      }
                                     }
                                 }
                             @endphp

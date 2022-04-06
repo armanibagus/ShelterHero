@@ -3,7 +3,18 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title> {{ Request::is('login') ? 'Log in' : 'Register' }} | {{config('app.name')}}</title>
+     @if(Request::is('login'))
+        <title>{{ __('Log in') }} | {{config('app.name')}}</title>
+     @elseif(Request::is('register'))
+        <title>{{ __('Register') }} | {{config('app.name')}}</title>
+     @elseif(Request::is('password/reset'))
+        <title>{{ __('Reset Password') }} | {{config('app.name')}}</title>
+     @elseif(Request::is('password/reset') || Request::is('password/reset/*'))
+        <title>{{ __('Reset Password') }} | {{config('app.name')}}</title>
+     @elseif(Request::is('email/verify'))
+        <title>{{ __('Email Verification') }} | {{config('app.name')}}</title>
+     @endif
+
 
     {{--  Tab icon  --}}
     <link rel="icon" href="{{asset('artefact/dist/img/shelter-hero-logo2-white.png')}}" type="image/png">

@@ -42,7 +42,7 @@
         <!-- SidebarSearch Form -->
         <div class="form-inline mt-2">
             <div class="input-group" data-widget="sidebar-search">
-                <input class="form-control form-control-sidebar" style="border: 1px solid #56606a;" type="search" placeholder="Search" aria-label="Search">
+                <input class="form-control form-control-sidebar" style="border: 1px solid #56606a;" type="search" placeholder="Search Menu" aria-label="Search">
                 <div class="input-group-append">
                     <button class="btn btn-sidebar">
                         <i class="fas fa-search fa-fw"></i>
@@ -193,9 +193,12 @@
                                           ['shelter_id', '=', auth()->user()->id],
                                           ['status', '=', 'Confirmed']
                                         ])->latest()->get();
+                        $petClaims = DB::table('lost_pet_claims')->get();
                         $allAdoptions = DB::table('adoptions')
                                           ->where('shelter_id', '=', Auth::user()->id)->get();
-                        $adoptPets = \App\Http\Controllers\PetController::validatePets($allPets, $allAdoptions);
+
+                        $noClaim_pets  = \App\Http\Controllers\PetController::validatePets($allPets, $petClaims);
+                        $adoptPets = \App\Http\Controllers\PetController::validatePets($noClaim_pets, $allAdoptions);
                         $totalPending = 0;
                         foreach ($adoptPets as $pet) {
                           $date = new \Carbon\Carbon($pet->pickUpDate);
@@ -213,36 +216,40 @@
                         <a href="{{route('adoptions.index')}}" class="nav-link {{Request::is('adoptions') ? 'active' : ''}}">
                             <i class="nav-icon fas fa-clipboard-list"></i>
                             <p>Adoption Request</p>
-                            <span class="badge badge-danger right">{{ $totalPending != 0 ? $totalPending : '' }}</span>
+                            @if($totalPending > 0)
+                            <span class="badge badge-danger right">{{ $totalPending }}</span>
+                            @endif
                         </a>
                     </li>
+                    @php
+                        $allPets = DB::table('pets')
+                                    ->where([
+                                      ['shelter_id', '=', auth()->user()->id],
+                                      ['status', '=', 'Confirmed']
+                                    ])->latest()->get();
+                        $allClaims = DB::table('lost_pet_claims')
+                                    ->where('shelter_id', '=', Auth::user()->id)->latest()->get();
+                        $lostPets = \App\Http\Controllers\PetController::validatePets($allPets, $allClaims);
+                        $totalPending = 0;
+                        foreach ($lostPets as $pet) {
+                          $date = new \Carbon\Carbon($pet->pickUpDate);
+                          $expiredate = $date->addDays(7);
+                          if (\Carbon\Carbon::today() < $expiredate) {
+                            $pendingClaims = DB::table('lost_pet_claims')
+                                          ->where('status', '=', 'Pending')
+                                          ->where('shelter_id', '=', Auth::user()->id)
+                                          ->where('pet_id', '=', $pet->id)->get();
+                            $totalPending += count($pendingClaims);
+                          }
+                        }
+                    @endphp
                     <li class="nav-item">
                         <a href="{{route('lost-pet-claims.index')}}" class="nav-link {{Request::is('lost-pet-claims') ? 'active' : ''}}">
                             <i class="nav-icon fas fa-clipboard-list"></i>
                             <p>Lost Pet Claim</p>
-                            @php
-                                $allPets = DB::table('pets')
-                                            ->where([
-                                              ['shelter_id', '=', auth()->user()->id],
-                                              ['status', '=', 'Confirmed']
-                                            ])->latest()->get();
-                                $allClaims = DB::table('lost_pet_claims')
-                                            ->where('shelter_id', '=', Auth::user()->id)->latest()->get();
-                                $lostPets = \App\Http\Controllers\PetController::validatePets($allPets, $allClaims);
-                                $totalPending = 0;
-                                foreach ($lostPets as $pet) {
-                                  $date = new \Carbon\Carbon($pet->pickUpDate);
-                                  $expiredate = $date->addDays(7);
-                                  if (\Carbon\Carbon::today() < $expiredate) {
-                                    $pendingClaims = DB::table('lost_pet_claims')
-                                                  ->where('status', '=', 'Pending')
-                                                  ->where('shelter_id', '=', Auth::user()->id)
-                                                  ->where('pet_id', '=', $pet->id)->get();
-                                    $totalPending += count($pendingClaims);
-                                  }
-                                }
-                            @endphp
-                            <span class="badge badge-danger right">{{ $totalPending != 0 ? $totalPending : '' }}</span>
+                            @if($totalPending > 0)
+                            <span class="badge badge-danger right">{{ $totalPending }}</span>
+                            @endif
                         </a>
                     </li>
                     <li class="nav-header">Donation</li>

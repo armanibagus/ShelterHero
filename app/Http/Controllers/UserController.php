@@ -4,13 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('verified');
+        $this->middleware('auth');
+        $this->middleware('verified')->only('allPetShelter', 'show');
     }
     /**
      * Display a listing of the resource.
@@ -86,24 +89,69 @@ class UserController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  int  $id
+     * @param  \App\Models\User  $user
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(User $user)
     {
-        //
+        if (Auth::user()->id == $user->id) {
+            return view('general.user-profile', compact('user'));
+        } else {
+            return abort(403, 'Unauthorized action.');
+        }
     }
 
     /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param  \App\Models\User  $user
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, User $user)
     {
-        //
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'phoneNumber' => ['required', 'max:15'],
+            'address' => ['required', 'string']
+        ]);
+        $user->update([
+            'name' => $request->get('name'),
+            'phoneNumber' => $request->get('phoneNumber'),
+            'address' => $request->get('address')
+        ]);
+        if ($request->get('identityNumber') != $user->identityNumber) {
+            $request->validate([
+                'identityNumber' => ['required', 'string', 'unique:users']
+            ]);
+            $user->identityNumber = $request->get('identityNumber');
+        }
+        if ($request->get('username') != $user->username) {
+            $request->validate([
+                'username' => ['required', 'string', 'min:8', 'max:16', 'unique:users']
+            ]);
+            $user->username = $request->get('username');
+        }
+        if ($request->get('email') != $user->email) {
+            $request->validate([
+                'email' => ['required', 'string', 'email', 'max:255', 'unique:users']
+            ]);
+            $user->email = $request->get('email');
+            $user->email_verified_at = NULL;
+            $user->sendEmailVerificationNotification();
+        }
+        if ($request->get('old_password') != '' ||
+            $request->get('new_password') != '' ||
+            $request->get('password_confirmation') != '') {
+            $request->validate([
+                'old_password' => ['required', 'password'],
+                'password' => ['required', 'string', 'min:8', 'confirmed'],
+                'password_confirmation' => 'required'
+            ]);
+            $user->password = Hash::make($request->get('password'));
+        }
+        $user->save();
+        return redirect()->back();
     }
 
     /**

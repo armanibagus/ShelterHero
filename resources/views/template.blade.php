@@ -29,7 +29,7 @@
     <!-- Theme style -->
     <link rel="stylesheet" href="{{asset('artefact/dist/css/adminlte.min.css')}}">
 </head>
-<body class="hold-transition sidebar-mini layout-fixed">
+<body class="hold-transition sidebar-mini  layout-fixed">
 <!-- Site wrapper -->
 <div class="wrapper">
     <!-- Navbar -->
@@ -65,24 +65,9 @@
                             <small>Member since {{ Auth::user()->created_at->format('d M Y') }}</small>
                         </p>
                     </li>
-                    <!-- Menu Body -->
-                    <li class="user-body">
-                        <div class="row">
-                            <div class="col-4 text-center">
-                                <a href="#">Followers</a>
-                            </div>
-                            <div class="col-4 text-center">
-                                <a href="#">Sales</a>
-                            </div>
-                            <div class="col-4 text-center">
-                                <a href="#">Friends</a>
-                            </div>
-                        </div>
-                        <!-- /.row -->
-                    </li>
                     <!-- Menu Footer-->
                     <li class="user-footer">
-                        <a href="#" class="btn btn-outline-info">Profile</a>
+                        <a href="{{ route('users.edit', Auth::user()->id) }}" class="btn btn-outline-primary">Profile</a>
                         <a class="btn btn-outline-danger float-right" href="javascript:void(0);" data-toggle="modal" data-target="#logoutModal">
                             Log Out
                         </a>
@@ -155,6 +140,11 @@
 {{--<script src="{{asset('artefact/plugins/sweetalert2/sweetalert2.min.js')}}"></script>--}}
 <!-- App -->
 <script src="{{asset('artefact/dist/js/adminlte.min.js')}}"></script>
+@if (Request::is('users/*/edit') && session('resent'))
+    <script>
+        $('#modal-email-confirm').modal('show');
+    </script>
+@endif
 <script>
     $(function() {
 // Multiple images preview with JavaScript

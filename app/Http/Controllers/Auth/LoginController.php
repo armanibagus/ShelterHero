@@ -59,7 +59,7 @@ class LoginController extends Controller
         // Login using username & email
         $fieldType = filter_var($request->username, FILTER_VALIDATE_EMAIL) ? 'email':'username';
         if(auth()->attempt(array($fieldType => $input['username'],
-                                'password' => $input['password']))) {
+                                'password' => $input['password']), $request->get('remember'))) {
             if (auth()->user()->role == 'user') {
                 return redirect()->route('home-user');
             } else if (auth()->user()->role == 'volunteer') {

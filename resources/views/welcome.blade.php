@@ -31,7 +31,7 @@
 
 <!-- ======= Header ======= -->
 <header id="header" class="fixed-top d-flex align-items-center header-transparent">
-    <div class="container d-flex justify-content-between align-items-center">
+    <div class="container d-flex justify-content-between align-items-center wrapper">
         <div id="logo">
             <a href="{{url('/')}}"><img src="{{asset('artefact/dist/img/shelter-hero-logo.png')}}" style="width: 50%; height: auto" alt=""></a>
             <!-- Uncomment below if you prefer to use a text logo -->
@@ -39,86 +39,70 @@
 
         <nav id="navbar" class="navbar">
             <ul>
-                @auth
-                <li>
-                    <a class="nav-link fas fa-bars scrollto text-left" data-widget="pushmenu" href="#" role="button">
-                        <strong><i class="fas fa-bars "></i></strong>
-                    </a>
-                </li>
-                @endauth
                 <li><a class="nav-link scrollto active" href="#hero">Home</a></li>
                 <li><a class="nav-link scrollto" href="#about">About</a></li>
                 <li><a class="nav-link scrollto" href="#services">Services</a></li>
-                <li><a class="nav-link scrollto " href="#portfolio">Portfolio</a></li>
+                <li><a class="nav-link scrollto" href="#portfolio">Portfolio</a></li>
                 <li><a class="nav-link scrollto" href="#team">Team</a></li>
                 <li><a class="nav-link scrollto" href="#contact">Contact</a></li>
+                @auth
+                    @php
+                        if(Auth::user()->role == 'user')
+                            $url = '/user/home';
+                        else if(Auth::user()->role == 'volunteer')
+                          $url = '/volunteer/home';
+                        else if(Auth::user()->role == 'pet_shelter')
+                          $url = '/pet-shelter/home';
+                    @endphp
+                    <li><a class="" href="{{url($url)}}"><strong>Main Menu<i class="fas fa-arrow-right"></i></strong></a></li>
+                @endauth
 
-                    @if (Route::has('login'))
-                        <ul class="order-1 order-md-3 navbar-nav navbar-no-expand ml-auto">
-                            @auth
-                                <ul class="navbar-nav ml-auto">
-                                    <li class="nav-item dropdown user-menu">
-                                        <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
-                                            <img src="{{asset('artefact/dist/img/unknown.png')}}" class="user-image img-circle elevation-2" alt="User Image">
-                                            <span class="d-none d-md-inline">{{ Auth::user()->name }}</span>
-                                        </a>
-                                        <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-                                            <!-- User image -->
-                                            <li class="user-header bg-white">
-                                                <img src="{{asset('artefact/dist/img/unknown.png')}}" class="img-circle elevation-2" alt="User Image">
-                                                <p>
-                                                    {{ Auth::user()->name }} - @if(Auth::user()->role === 'user')
-                                                        {{ 'User' }}
-                                                    @elseif(Auth::user()->role === 'volunteer')
-                                                        {{ 'Volunteer' }}
-                                                    @elseif(Auth::user()->role === 'pet_shelter')
-                                                        {{ 'Pet Shelter' }}
-                                                    @else
-                                                        {{ 'Undefined' }}
-                                                    @endif
-                                                    <small>Member since {{ Auth::user()->created_at->format('d M Y') }}</small>
-                                                </p>
-                                            </li>
-                                            <!-- Menu Body -->
-                                            <li class="user-body">
-                                                <div class="row">
-                                                    <div class="col-4 text-center">
-                                                        <a href="#">Followers</a>
-                                                    </div>
-                                                    <div class="col-4 text-center">
-                                                        <a href="#">Sales</a>
-                                                    </div>
-                                                    <div class="col-4 text-center">
-                                                        <a href="#">Friends</a>
-                                                    </div>
-                                                </div>
-                                                <!-- /.row -->
-                                            </li>
-                                            <!-- Menu Footer-->
-                                            <li class="user-footer">
-{{--                                                <a href="#" class="btn btn-outline-info">Profile</a>--}}
-                                                <a class="btn btn-outline-danger float-right" href="javascript:void(0);" data-toggle="modal" data-target="#logoutModal">
-                                                    Log Out
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </li>
-                                </ul>
-                            @else
-                                <li class="nav-item">
-                                    <a href="{{ route('login') }}" class="text-black nav-link">Log in</a>
+                @if (Route::has('login'))
+                    @auth
+                        <li class="nav-item dropdown user-menu">
+                            <a href="#" class="" data-toggle="dropdown" style="display: block">
+                                <img src="{{asset('artefact/dist/img/unknown.png')}}" class="icon" style="width: 2.1rem" alt="User Image">
+                                <span><strong>{{ Auth::user()->name }}</strong></span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+                                <!-- User image -->
+                                <li class="user-header bg-white" style="text-align: center; height: 175px; padding: 10px">
+                                    <img src="{{asset('artefact/dist/img/unknown.png')}}" style="height: 90px; width: 90px;" alt="User Image">
+                                    <p style="text-align: center; font-size: 17px; margin: 10px 0 0">
+                                        {{ Auth::user()->name }} - @if(Auth::user()->role === 'user')
+                                            {{ 'User' }}
+                                        @elseif(Auth::user()->role === 'volunteer')
+                                            {{ 'Volunteer' }}
+                                        @elseif(Auth::user()->role === 'pet_shelter')
+                                            {{ 'Pet Shelter' }}
+                                        @else
+                                            {{ 'Undefined' }}
+                                        @endif
+                                        <br>
+                                        <small style="font-size: 12px">Member since {{ Auth::user()->created_at->format('d M Y') }}</small>
+                                    </p>
                                 </li>
-                                <li class="nav-item">
-                                    <a href="{{ route('register') }}" class="text-black nav-link">Register</a>
+                                <!-- Menu Footer-->
+                                <li style="padding: 10px; background-color: #f8f9fa">
+                                    <a href="{{ route('users.edit', Auth::user()->id) }}" class="btn btn-primary float-left" style="color: #fff">Profile</a>
+                                    <a class="btn btn-danger float-right" style="color: #fff" href="javascript:void(0);" data-toggle="modal" data-target="#logoutModal">
+                                        Log Out
+                                    </a>
                                 </li>
-                            @endauth
-                        </ul>
-                    @endif
+                            </ul>
+                        </li>
+                    @else
+                        <li class="nav-item">
+                            <a href="{{ route('login') }}" class="text-black nav-link">Log in</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('register') }}" class="text-black nav-link">Register</a>
+                        </li>
+                    @endauth
+                @endif
             </ul>
             <i class="bi bi-list mobile-nav-toggle"></i>
         </nav><!-- .navbar -->
-        <!-- Main Sidebar Container -->
-        @extends('sidebar')
     </div>
 </header><!-- End Header -->
 <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabelLogout"

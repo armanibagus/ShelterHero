@@ -7,7 +7,7 @@
 @section('content-wrapper')
     @php
         $i = $a = 0; $p = 0; $totalAdopt = 0; $totalClaim = 0;
-        $adp = 0; $clm = 0;
+        $adp = 0; $clm = 0; $accepted = false; $tab_name = '';
         $allData = array();
         $routeType = '';
         $btnName = '';
@@ -139,15 +139,54 @@
                             </div>
 
                             @php
-                                if (Auth::user()->role != 'pet_shelter') {
+                              $allAdoptions = DB::table('adoptions')->get();
+                              $allClaims = DB::table('lost_pet_claims')->get();
+                              $isAdopted = \App\Http\Controllers\PetController::petIsAccepted($pet, $allAdoptions);
+                              $isClaimed = \App\Http\Controllers\PetController::petIsAccepted($pet, $allClaims);
+                              if ($isAdopted || $isClaimed) {
+                                $i = 1; $p = -1; $id_tab = 'accepted-tab';
+                                if ($isAdopted) {
+                                  foreach ($allAdoptions as $data) {
+                                    if ($data->pet_id == $pet->id) {
+                                      if ($data->status == 'Accepted') {
+                                        if (Auth::user()->role == 'user') {
+                                          $data->user_id == Auth::user()->id ? $a = 1 : $a = -1;
+                                        } else if (Auth::user()->role == 'pet_shelter') {
+                                          $accepted = true;
+                                          $tab_name = 'Adopted';
+                                          $allData[] = $data;
+                                          $route_data = 'adoptions.edit';
+                                        } break;
+                                      }
+                                    }
+                                  }
+                                } else {
+                                  foreach ($allClaims as $data) {
+                                    if ($data->pet_id == $pet->id) {
+                                      if ($data->status == 'Accepted') {
+                                        if (Auth::user()->role == 'user') {
+                                          $data->user_id == Auth::user()->id ? $a = 1 : $a = -1;
+                                        } else if (Auth::user()->role == 'pet_shelter') {
+                                          $accepted = true;
+                                          $tab_name = 'Claimed';
+                                          $allData[] = $data;
+                                          $route_data = 'lost-pet-claims.edit';
+                                        } break;
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                              if (Auth::user()->role == 'user') {
+                                if (!$isAdopted && !$isClaimed) {
                                   if (\Carbon\Carbon::today() > $expiredate) {
                                     $allData = DB::table('adoptions')->get();
                                     $routeType = route('adoptions.create');
                                     $btnName = 'Request for Adoption';
-                                } else {
-                                  $allData = DB::table('lost_pet_claims')->get();
-                                  $routeType = route('lost-pet-claims.create');
-                                  $btnName = 'Make a Claim';
+                                  } else {
+                                    $allData = DB::table('lost_pet_claims')->get();
+                                    $routeType = route('lost-pet-claims.create');
+                                    $btnName = 'Make a Claim';
                                   }
                                   foreach ($allData as $data) {
                                     if ($data->pet_id == $pet->id) {
@@ -161,33 +200,38 @@
                                       }
                                     }
                                   }
-                                } else {
-                                  $i = 1; $p = -1; $a = -1;
-                                  if (\Carbon\Carbon::today() > $expiredate) {
-                                    $adp = 1;
-                                    $id_tab = 'adoptions-requests';
-                                    $route_data = 'adoptions.edit';
-                                    $allAdoptions = DB::table('adoptions')->get();
-                                    foreach ($allAdoptions as $adopt) {
-                                      if ($adopt->pet_id == $pet->id && $adopt->status == 'Pending') {
-                                        $totalAdopt++;
-                                        $allData[] = $adopt;
-                                      }
-                                    }
-                                  } else {
-                                    $clm = 1;
-                                    $id_tab = 'lost-pet-claims';
-                                    $route_data = 'lost-pet-claims.edit';
-                                    $allClaims = DB::table('lost_pet_claims')->get();
-                                    foreach ($allClaims as $claim) {
-                                      if ($claim->pet_id == $pet->id && $claim->status == 'Pending') {
-                                        $totalClaim++;
-                                        $allData[] = $claim;
-                                      }
-                                    }
-                                  }
                                 }
-                                $arrLength = count($allData);
+                              } else if (Auth::user()->role == 'pet_shelter' && Auth::user()->id == $pet->shelter_id) {
+                                $i = 1; $p = -1; $a = -1;
+                                if (!$isAdopted && !$isClaimed) {
+                                    if (\Carbon\Carbon::today() > $expiredate) {
+                                      $adp = 1;
+                                      $id_tab = 'adoptions-requests';
+                                      $route_data = 'adoptions.edit';
+                                      $allAdoptions = DB::table('adoptions')->get();
+                                      foreach ($allAdoptions as $adopt) {
+                                        if ($adopt->pet_id == $pet->id && $adopt->shelter_id == Auth::user()->id &&
+                                          $adopt->status == 'Pending') {
+                                          $totalAdopt++;
+                                          $allData[] = $adopt;
+                                        }
+                                      }
+                                    } else {
+                                      $clm = 1;
+                                      $id_tab = 'lost-pet-claims';
+                                      $route_data = 'lost-pet-claims.edit';
+                                      $allClaims = DB::table('lost_pet_claims')->get();
+                                      foreach ($allClaims as $claim) {
+                                        if ($claim->pet_id == $pet->id && $claim->shelter_id == Auth::user()->id &&
+                                          $claim->status == 'Pending') {
+                                          $totalClaim++;
+                                          $allData[] = $claim;
+                                        }
+                                      }
+                                    }
+                                }
+                              }
+                              $arrLength = count($allData);
                             @endphp
                             @if(Auth::user()->role == 'user')
                                 @if($i < 1)
@@ -232,6 +276,10 @@
                             <a class="nav-item nav-link" id="lost-pet-claims-tab" data-toggle="tab" href="#lost-pet-claims" role="tab" aria-controls="lost-pet-claims" aria-selected="false">
                                 Lost Pet Claim ({{$totalClaim}})
                             </a>
+                            @elseif($accepted)
+                                <a class="nav-item nav-link" id="lost-pet-claims-tab" data-toggle="tab" href="#accepted-tab" role="tab" aria-controls="lost-pet-claims" aria-selected="false">
+                                    {{ $tab_name }} by
+                                </a>
                             @endif
                         </div>
                     </nav>
@@ -239,7 +287,7 @@
                         <div class="tab-pane fade show active" id="pet-condition" role="tabpanel" aria-labelledby="pet-condition-tab">
                             {{ __($pet->condition) }}
                         </div>
-                        @if($adp > 0 || $clm > 0)
+                        @if($adp > 0 || $clm > 0 || $accepted)
                         <div class="tab-pane fade" id="{{($id_tab)}}" role="tabpanel" aria-labelledby="adoptions-requests-tab">
                             <div class="row">
                                 @foreach($allData as $data)

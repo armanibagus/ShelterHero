@@ -53,7 +53,7 @@
         <div id="hidden_div" class="form-group">
             <label class="mb-1">Date of Birth</label>
             <div class="form-group mb-2">
-                <input id="dateOfBirth" type="date" class="form-control @error('dateOfBirth') is-invalid @enderror" name="dateOfBirth" autocomplete="dateOfBirth">
+                <input id="dateOfBirth" type="date" class="form-control @error('dateOfBirth') is-invalid @enderror" name="dateOfBirth" autocomplete="bday">
 
                 @error('dateOfBirth')
                 <span class="invalid-feedback" role="alert">
@@ -66,7 +66,7 @@
         {{-- Phone Number Form --}}
         <div class="form-group">
             <label class="mb-1">Phone Number</label>
-            <input id="phoneNumber" type="text" class="form-control @error('phoneNumber') is-invalid @enderror" name="phoneNumber" placeholder="Enter phone number" value="{{ old('phoneNumber') }}" required autocomplete="phoneNumber">
+            <input id="phoneNumber" type="text" class="form-control @error('phoneNumber') is-invalid @enderror" name="phoneNumber" placeholder="Enter phone number" value="{{ old('phoneNumber') }}" required autocomplete="phone">
 
             @error('phoneNumber')
             <span class="invalid-feedback" role="alert">
@@ -78,7 +78,7 @@
         {{-- Address Form --}}
         <div class="form-group">
             <label class="mb-1">Address</label>
-            <input id="address" type="text" class="form-control @error('address') is-invalid @enderror" name="address" placeholder="Enter address" value="{{ old('address') }}" required autocomplete="address">
+            <input id="address" type="text" class="form-control @error('address') is-invalid @enderror" name="address" placeholder="Enter address" value="{{ old('address') }}" required autocomplete="street-address">
 
             @error('address')
                 <span class="invalid-feedback" role="alert">

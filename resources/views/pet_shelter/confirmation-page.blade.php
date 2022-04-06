@@ -103,7 +103,7 @@
                     <div class="col-md-9">
                         <div class="card">
                             <div class="card-header">
-                                <h3 class="card-title text-lg text-bold">Adoption Information</h3>
+                                <h3 class="card-title text-lg text-bold">{{__(Request::is('adoptions/*/edit') ? 'Adoption Information' : 'Claim Information')}}</h3>
                             </div><!-- /.card-header -->
                             <div class="card-body">
                                 <div class="col-12">
@@ -221,6 +221,23 @@
                                         {{__($data->other_information)}}
                                     </p>
                                     <hr>
+                                    @if($data->status == 'Accepted')
+                                        <h6><strong>Status</strong></h6>
+                                        <p class="text-success">
+                                            <i class="fas fa-check-circle"></i> {{__($data->status)}}
+                                        </p>
+                                        <hr>
+                                        <h6><strong>Delivery Date</strong></h6>
+                                        <p>
+                                            {{__(date('d M Y',strtotime($data->delivery_date)))}}
+                                        </p>
+                                        <hr>
+                                        <h6><strong>Feedback</strong></h6>
+                                        <p>
+                                            {{__($data->feedback)}}
+                                        </p>
+                                        <hr>
+                                    @elseif($data->status == 'Pending')
                                     <form method="POST" action="@if(Request::is('adoptions/*/edit')){{route('adoptions.update', $data->id)}}@elseif(Request::is('lost-pet-claims/*/edit')){{route('lost-pet-claims.update', $data->id)}}@endif">
                                         @csrf
                                         @method('PUT')
@@ -260,6 +277,7 @@
                                             {{ __('Submit') }}
                                         </button>
                                     </form>
+                                    @endif
                                 </div>
                             </div><!-- /.card-body -->
                         </div>
