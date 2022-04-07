@@ -24,7 +24,14 @@
                     <div class="card card-primary card-outline">
                         <div class="card-body box-profile">
                             <div class="text-center">
-                                <img class="profile-user-img img-fluid img-circle" src="{{asset('artefact/dist/img/unknown.png')}}" alt="User profile picture">
+                                @if(Auth::user()->photo_title != NULL && Auth::user()->photo_path != NULL)
+                                    @php
+                                        $title = trim(str_replace("public/profile-picture/","", Auth::user()->photo_path));
+                                    @endphp
+                                    <img class="profile-user-img img-fluid img-circle" src="{{ asset('storage/profile-picture/'.$title) }}" alt="User profile picture" style="height: 100px; width: 100px; object-fit: cover;">
+                                @else
+                                    <img class="profile-user-img img-fluid img-circle" src="{{ asset('artefact/dist/img/unknown.png') }}" alt="User profile picture">
+                                @endif
                             </div>
                             <div class="profile-username text-center"><strong>{{__($user->name)}}</strong> <i class="fas fa-check-circle text-primary text-sm "></i></div>
                             <p class="text-muted text-center">
@@ -76,6 +83,32 @@
                             <h3 class="card-title"><i class="fas fa-edit"></i> Edit Profile</h3>
                         </div>
                         <div class="card-body">
+                            <div class="text-center mb-2">
+                                @if(Auth::user()->photo_title != NULL && Auth::user()->photo_path != NULL)
+                                @php
+                                    $title = trim(str_replace("public/profile-picture/","", Auth::user()->photo_path));
+                                @endphp
+                                    <img class="profile-user-img img-fluid img-circle" src="{{ asset('storage/profile-picture/'.$title) }}" alt="User profile picture" style="height: 100px; width: 100px; object-fit: cover;">
+                                @else
+                                    <img class="profile-user-img img-fluid img-circle" src="{{ asset('artefact/dist/img/unknown.png') }}" alt="User profile picture">
+                                @endif
+                            </div>
+                            <form method="POST" action="{{ route('users.update', Auth::user()->id) }}" accept-charset="utf-8" enctype="multipart/form-data">
+                                @csrf
+                                @method('PUT')
+                                <div class="form-group text-center mb-4">
+                                    <label class="btn btn-link p-0 m-0 align-baseline" for="profile-photo">
+                                        <input id="profile-photo" type="file" name="profile_picture" class="d-none custom-file-input @error('profile_picture') is-invalid @enderror" onchange="document.getElementById('submit').click();">
+                                        Change Profile Photo
+                                        @error('profile_picture')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                        @enderror
+                                    </label>
+                                    <button type="submit" id="submit" hidden>Upload Photo</button>
+                                </div>
+                            </form>
                             <form class="form-horizontal" method="POST" action="{{ route('users.update', Auth::user()->id) }}">
                                 @csrf
                                 @method('PUT')

@@ -25,6 +25,7 @@ class DataTableSeeder extends Seeder
             'phoneNumber' => '+8209210087001',
             'address' => 'Jl Kenangan, Gang Cempaka No. 66',
             'email' => 'heavenlysins77@gmail.com',
+            'email_verified_at' => '2022-04-06 12:37:30',
             'role' => 'user',
         ]);
         User::create([
@@ -35,6 +36,7 @@ class DataTableSeeder extends Seeder
             'phoneNumber' => '+8276519054376',
             'address' => 'Jl Raya Darmasaba No.86',
             'email' => 'xavierjeonjjk@gmail.com',
+            'email_verified_at' => '2022-04-06 12:37:30',
             'role' => 'volunteer',
         ]);
         User::create([
@@ -45,6 +47,7 @@ class DataTableSeeder extends Seeder
             'phoneNumber' => '+8209865328901',
             'address' => 'Jl Raya Kuta Utara No.12',
             'email' => 'heyitsc@gmail.com',
+            'email_verified_at' => '2022-04-06 12:37:30',
             'role' => 'pet_shelter',
         ]);
     }

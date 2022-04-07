@@ -45,13 +45,27 @@
         <ul class="navbar-nav ml-auto">
             <li class="nav-item dropdown user-menu">
                 <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
-                    <img src="{{asset('artefact/dist/img/unknown.png')}}" class="user-image img-circle elevation-2" alt="User Image">
+                    @if(Auth::user()->photo_title != NULL && Auth::user()->photo_path != NULL)
+                        @php
+                            $title = trim(str_replace("public/profile-picture/","", Auth::user()->photo_path));
+                        @endphp
+                        <img class="user-image img-circle elevation-2" src="{{ asset('storage/profile-picture/'.$title) }}" alt="User profile picture" style="object-fit: cover;">
+                    @else
+                        <img src="{{ asset('artefact/dist/img/unknown.png') }}" class="user-image img-circle elevation-2" alt="User Image">
+                    @endif
                     <span class="d-none d-md-inline">{{ Auth::user()->name }}</span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
                     <!-- User image -->
                     <li class="user-header bg-white">
-                        <img src="{{asset('artefact/dist/img/unknown.png')}}" class="img-circle elevation-2" alt="User Image">
+                        @if(Auth::user()->photo_title != NULL && Auth::user()->photo_path != NULL)
+                            @php
+                                $title = trim(str_replace("public/profile-picture/","", Auth::user()->photo_path));
+                            @endphp
+                            <img class="img-circle elevation-2" src="{{ asset('storage/profile-picture/'.$title) }}" alt="User profile picture" style="object-fit: cover;">
+                        @else
+                            <img src="{{ asset('artefact/dist/img/unknown.png') }}" class="img-circle elevation-2" alt="User Image">
+                        @endif
                         <p>
                             {{ Auth::user()->name }} - @if(Auth::user()->role === 'user')
                                                            {{ 'User' }}

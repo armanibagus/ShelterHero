@@ -295,7 +295,21 @@
                                     <a class="btn" style="padding: 0" href="{{route($route_data, $data->id)}}">
                                         <div class="card card-widget widget-user">
                                             <div style="text-align: center">
-                                                <img src="{{asset('artefact/dist/img/unknown.png')}}" class="img-fluid" alt="Responsive image" style="border-radius: 2%; object-fit: cover; height: 280px; width: 700px">
+                                                @php
+                                                $users = DB::table('users')->where('id', '=', $data->user_id)->get();
+                                                  $user = new \App\Models\User();
+                                                    foreach ($users as $obj) {
+                                                      $user = $obj;
+                                                    }
+                                                @endphp
+                                                @if($user->photo_title != NULL && $user->photo_path != NULL)
+                                                    @php
+                                                        $title = trim(str_replace("public/profile-picture/","", $user->photo_path));
+                                                    @endphp
+                                                    <img class="img-fluid" src="{{ asset('storage/profile-picture/'.$title) }}" alt="User profile picture" style="border-radius: 2%; height: 280px; width: 700px; object-fit: cover;">
+                                                @else
+                                                    <img class="img-fluid" src="{{ asset('artefact/dist/img/unknown.png') }}" alt="User profile picture" style="border-radius: 2%; object-fit: cover; height: 280px; width: 700px">
+                                                @endif
                                             </div>
                                             <div class="card-body text-center">
                                                 <strong class="text-lg">{{$data->name}}</strong><br>

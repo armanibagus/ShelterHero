@@ -32,7 +32,14 @@
                     <div class="card card-primary card-outline">
                         <div class="card-body box-profile">
                             <div class="text-center">
-                                <img class="profile-user-img img-fluid img-circle" src="{{asset('artefact/dist/img/unknown.png')}}" alt="User profile picture">
+                                @if($user->photo_title != NULL && $user->photo_path != NULL)
+                                    @php
+                                        $title = trim(str_replace("public/profile-picture/","", $user->photo_path));
+                                    @endphp
+                                    <img class="profile-user-img img-fluid img-circle" src="{{ asset('storage/profile-picture/'.$title) }}" alt="User profile picture" style="height: 100px; width: 100px; object-fit: cover;">
+                                @else
+                                    <img class="profile-user-img img-fluid img-circle" src="{{ asset('artefact/dist/img/unknown.png') }}" alt="User profile picture">
+                                @endif
                             </div>
                             <div class="profile-username text-center"><strong>{{__($user->name)}}</strong> <i class="fas fa-check-circle text-primary text-sm "></i></div>
                             <p class="text-muted text-center">

@@ -35,7 +35,14 @@
                         <!-- Widget: user widget style 1 -->
                         <div class="card card-widget widget-user">
                             <div style="text-align: center">
-                                <img src="{{asset('artefact/dist/img/unknown.png')}}" alt="User profile image" class="img-fluid" style="border-radius: 2%; object-fit: cover; height: 280px; width: 500px">
+                                @if($shelter->photo_title != NULL && $shelter->photo_path != NULL)
+                                    @php
+                                        $title = trim(str_replace("public/profile-picture/","", $shelter->photo_path));
+                                    @endphp
+                                    <img class="img-fluid" src="{{ asset('storage/profile-picture/'.$title) }}" alt="User profile picture" style="border-radius: 2%; height: 280px; width: 700px; object-fit: cover;">
+                                @else
+                                    <img class="img-fluid" src="{{ asset('artefact/dist/img/unknown.png') }}" alt="User profile picture" style="border-radius: 2%; object-fit: cover; height: 280px; width: 700px">
+                                @endif
                             </div>
                             <div class="card-body text-center">
                                 <strong class="text-lg">{{$shelter->name}}</strong> <i class="fas fa-check-circle text-primary"></i><br>

@@ -98,7 +98,21 @@
                                     <h6 class="text-muted mb-3">Fundraiser</h6>
                                     <a href="@if(Auth::user()->role == 'user'){{ route('users.show', $donation->shelter_id) }} @elseif(Auth::user()->role == 'pet_shelter') {{ __('#') }}@endif">
                                         <div class="user-block">
-                                            <img class="img-circle img-bordered-sm" src="{{asset('artefact/dist/img/unknown.png')}}" alt="User profile picture">
+                                            @php
+                                                $users = DB::table('users')->where('id', '=', $donation->shelter_id)->get();
+                                                  $user = new \App\Models\User();
+                                                    foreach ($users as $obj) {
+                                                      $user = $obj;
+                                                    }
+                                            @endphp
+                                            @if($user->photo_title != NULL && $user->photo_path != NULL)
+                                                @php
+                                                    $title = trim(str_replace("public/profile-picture/","", $user->photo_path));
+                                                @endphp
+                                                <img class="img-circle img-bordered-sm" src="{{ asset('storage/profile-picture/'.$title) }}" alt="User profile picture" style="object-fit: cover;">
+                                            @else
+                                                <img class="img-circle img-bordered-sm" src="{{ asset('artefact/dist/img/unknown.png') }}" alt="User profile picture">
+                                            @endif
                                             <span class="username" style="color:#000;">{{ __($donation->name) }}</span>
                                             <span class="description">Verified <i class="fas fa-check-circle text-primary"></i></span>
                                         </div>

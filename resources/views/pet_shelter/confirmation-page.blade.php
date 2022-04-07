@@ -48,9 +48,21 @@
                         <div class="card card-primary card-outline">
                             <div class="card-body box-profile">
                                 <div class="text-center">
-                                    <img class="profile-user-img img-fluid img-circle"
-                                         src="{{asset('artefact/dist/img/unknown.png')}}"
-                                         alt="User profile picture">
+                                    @php
+                                        $users = DB::table('users')->where('id', '=', $data->user_id)->get();
+                                          $user = new \App\Models\User();
+                                            foreach ($users as $obj) {
+                                              $user = $obj;
+                                            }
+                                    @endphp
+                                    @if($user->photo_title != NULL && $user->photo_path != NULL)
+                                        @php
+                                            $title = trim(str_replace("public/profile-picture/","", $user->photo_path));
+                                        @endphp
+                                        <img class="profile-user-img img-fluid img-circle" src="{{ asset('storage/profile-picture/'.$title) }}" alt="User profile picture" style="height: 100px; width: 100px; object-fit: cover;">
+                                    @else
+                                        <img class="profile-user-img img-fluid img-circle" src="{{ asset('artefact/dist/img/unknown.png') }}" alt="User profile picture">
+                                    @endif
                                 </div>
                                 <h3 class="profile-username text-center">{{__($data->name)}}</h3>
                                 <p class="text-muted text-center">{{__($data->occupation)}}</p>

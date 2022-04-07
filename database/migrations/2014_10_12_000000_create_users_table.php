@@ -25,6 +25,8 @@ class CreateUsersTable extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->enum('role',['user', 'volunteer', 'pet_shelter']);
+            $table->string('photo_title')->nullable();
+            $table->string('photo_path')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

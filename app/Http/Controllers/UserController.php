@@ -110,47 +110,65 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'phoneNumber' => ['required', 'max:15'],
-            'address' => ['required', 'string']
-        ]);
-        $user->update([
-            'name' => $request->get('name'),
-            'phoneNumber' => $request->get('phoneNumber'),
-            'address' => $request->get('address')
-        ]);
-        if ($request->get('identityNumber') != $user->identityNumber) {
+        if ($request->hasFile('profile_picture')) {
             $request->validate([
-                'identityNumber' => ['required', 'string', 'unique:users']
+                'profile_picture' => 'required|mimes:jpg,png,jpeg,gif,svg',
             ]);
-            $user->identityNumber = $request->get('identityNumber');
-        }
-        if ($request->get('username') != $user->username) {
+
+            $img = $request->file('profile_picture');
+            // store the image
+            $file_name = $img->getClientOriginalName();
+            $img_path = $img->store('public/profile-picture');
+            // store image details into database
+            $user->update([
+                'photo_title' => $file_name,
+                'photo_path' => $img_path
+            ]);
+            echo $file_name;
+            echo $img_path;
+        } else {
             $request->validate([
-                'username' => ['required', 'string', 'min:8', 'max:16', 'unique:users']
+                'name' => ['required', 'string', 'max:255'],
+                'phoneNumber' => ['required', 'max:15'],
+                'address' => ['required', 'string']
             ]);
-            $user->username = $request->get('username');
-        }
-        if ($request->get('email') != $user->email) {
-            $request->validate([
-                'email' => ['required', 'string', 'email', 'max:255', 'unique:users']
+            $user->update([
+                'name' => $request->get('name'),
+                'phoneNumber' => $request->get('phoneNumber'),
+                'address' => $request->get('address')
             ]);
-            $user->email = $request->get('email');
-            $user->email_verified_at = NULL;
-            $user->sendEmailVerificationNotification();
+            if ($request->get('identityNumber') != $user->identityNumber) {
+                $request->validate([
+                    'identityNumber' => ['required', 'string', 'unique:users']
+                ]);
+                $user->identityNumber = $request->get('identityNumber');
+            }
+            if ($request->get('username') != $user->username) {
+                $request->validate([
+                    'username' => ['required', 'string', 'min:8', 'max:16', 'unique:users']
+                ]);
+                $user->username = $request->get('username');
+            }
+            if ($request->get('email') != $user->email) {
+                $request->validate([
+                    'email' => ['required', 'string', 'email', 'max:255', 'unique:users']
+                ]);
+                $user->email = $request->get('email');
+                $user->email_verified_at = NULL;
+                $user->sendEmailVerificationNotification();
+            }
+            if ($request->get('old_password') != '' ||
+                $request->get('new_password') != '' ||
+                $request->get('password_confirmation') != '') {
+                $request->validate([
+                    'old_password' => ['required', 'password'],
+                    'password' => ['required', 'string', 'min:8', 'confirmed'],
+                    'password_confirmation' => 'required'
+                ]);
+                $user->password = Hash::make($request->get('password'));
+            }
+            $user->save();
         }
-        if ($request->get('old_password') != '' ||
-            $request->get('new_password') != '' ||
-            $request->get('password_confirmation') != '') {
-            $request->validate([
-                'old_password' => ['required', 'password'],
-                'password' => ['required', 'string', 'min:8', 'confirmed'],
-                'password_confirmation' => 'required'
-            ]);
-            $user->password = Hash::make($request->get('password'));
-        }
-        $user->save();
         return redirect()->back();
     }
 

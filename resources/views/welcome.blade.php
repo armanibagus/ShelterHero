@@ -61,13 +61,27 @@
                     @auth
                         <li class="nav-item dropdown user-menu">
                             <a href="#" class="" data-toggle="dropdown" style="display: block">
-                                <img src="{{asset('artefact/dist/img/unknown.png')}}" class="icon" style="width: 2.1rem" alt="User Image">
+                                @if(Auth::user()->photo_title != NULL && Auth::user()->photo_path != NULL)
+                                    @php
+                                        $title = trim(str_replace("public/profile-picture/","", Auth::user()->photo_path));
+                                    @endphp
+                                    <img class="img-circle" src="{{ asset('storage/profile-picture/'.$title) }}" alt="User profile picture" style="height: 2.1rem; width: 2.1rem; object-fit: cover;">
+                                @else
+                                    <img src="{{ asset('artefact/dist/img/unknown.png') }}" class="icon" style="height: 2.1rem; width: 2.1rem;" alt="User Image">
+                                @endif
                                 <span><strong>{{ Auth::user()->name }}</strong></span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
                                 <!-- User image -->
                                 <li class="user-header bg-white" style="text-align: center; height: 175px; padding: 10px">
-                                    <img src="{{asset('artefact/dist/img/unknown.png')}}" style="height: 90px; width: 90px;" alt="User Image">
+                                    @if(Auth::user()->photo_title != NULL && Auth::user()->photo_path != NULL)
+                                        @php
+                                            $title = trim(str_replace("public/profile-picture/","", Auth::user()->photo_path));
+                                        @endphp
+                                        <img class="img-circle" src="{{ asset('storage/profile-picture/'.$title) }}" alt="User profile picture" style="height: 90px; width: 90px;object-fit: cover;">
+                                    @else
+                                        <img src="{{ asset('artefact/dist/img/unknown.png') }}" style="height: 90px; width: 90px;" alt="User Image">
+                                    @endif
                                     <p style="text-align: center; font-size: 17px; margin: 10px 0 0">
                                         {{ Auth::user()->name }} - @if(Auth::user()->role === 'user')
                                             {{ 'User' }}
