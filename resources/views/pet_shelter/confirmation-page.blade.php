@@ -24,10 +24,14 @@
                     <div class="col-sm-6">
                         <ol class="breadcrumb float-sm-right">
                             <li class="breadcrumb-item"><a href="{{url('/pet-shelter/home')}}">Main Menu</a></li>
-                            @if(Request::is('adoptions/*/edit'))
-                                <li class="breadcrumb-item"><a href="{{route('adoptions.index')}}">Adoption Request</a></li>
-                            @elseif(Request::is('lost-pet-claims/*/edit'))
-                                <li class="breadcrumb-item"><a href="{{route('lost-pet-claims.index')}}">Lost Pet Claim</a></li>
+                            @if($data->status == 'Pending')
+                                @if(Request::is('adoptions/*/edit'))
+                                    <li class="breadcrumb-item"><a href="{{route('adoptions.index')}}">Adoption Request</a></li>
+                                @elseif(Request::is('lost-pet-claims/*/edit'))
+                                    <li class="breadcrumb-item"><a href="{{route('lost-pet-claims.index')}}">Lost Pet Claim</a></li>
+                                @endif
+                            @elseif($data->status == 'Accepted')
+                                <li class="breadcrumb-item"><a href="{{route('pets.myPets')}}">My Pets</a></li>
                             @endif
                             <li class="breadcrumb-item"><a href="{{route('pets.show', $data->pet_id)}}">Pet Details</a></li>
                             <li class="breadcrumb-item active">

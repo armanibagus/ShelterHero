@@ -16,6 +16,10 @@
 
         $date = new \Carbon\Carbon($pet->pickUpDate);
         $expiredate = $date->addDays(7);
+        $allAdoptions = DB::table('adoptions')->get();
+        $allClaims = DB::table('lost_pet_claims')->get();
+        $isAdopted = \App\Http\Controllers\PetController::petIsAccepted($pet, $allAdoptions);
+        $isClaimed = \App\Http\Controllers\PetController::petIsAccepted($pet, $allClaims);
     @endphp
     <div class="content-wrapper">
         <!-- Content Header (Page header) -->
@@ -37,15 +41,21 @@
                                 @endif
                             </li>
                             @if(Auth::user()->role == 'user' || Auth::user()->role == 'pet_shelter')
-                            @if(\Carbon\Carbon::today() > $expiredate)
-                                @if(Auth::user()->role == 'user')
-                                    <li class="breadcrumb-item"><a href="{{route('adoptions.index')}}">Pet Adoption</a></li>
-                                @elseif(Auth::user()->role == 'pet_shelter')
-                                    <li class="breadcrumb-item"><a href="{{route('adoptions.index')}}">Adoption Request</a></li>
+                                @if($isAdopted || $isClaimed)
+                                    @if(Auth::user()->role == 'pet_shelter')
+                                        <li class="breadcrumb-item"><a href="{{route('pets.myPets')}}">My Pets</a></li>
+                                    @endif
+                                @else
+                                    @if(\Carbon\Carbon::today() > $expiredate)
+                                        @if(Auth::user()->role == 'user')
+                                            <li class="breadcrumb-item"><a href="{{route('adoptions.index')}}">Pet Adoption</a></li>
+                                        @elseif(Auth::user()->role == 'pet_shelter')
+                                            <li class="breadcrumb-item"><a href="{{route('adoptions.index')}}">Adoption Request</a></li>
+                                        @endif
+                                    @elseif(\Carbon\Carbon::today() < $expiredate)
+                                        <li class="breadcrumb-item"><a href="{{route('lost-pet-claims.index')}}">Lost Pet Claim</a></li>
+                                    @endif
                                 @endif
-                            @elseif(\Carbon\Carbon::today() < $expiredate)
-                                <li class="breadcrumb-item"><a href="{{route('lost-pet-claims.index')}}">Lost Pet Claim</a></li>
-                            @endif
                             @elseif(Auth::user()->role == 'volunteer')
                                 <li class="breadcrumb-item"><a href="{{route('pets.index')}}">Pets</a></li>
                             @endif
@@ -139,10 +149,6 @@
                             </div>
 
                             @php
-                              $allAdoptions = DB::table('adoptions')->get();
-                              $allClaims = DB::table('lost_pet_claims')->get();
-                              $isAdopted = \App\Http\Controllers\PetController::petIsAccepted($pet, $allAdoptions);
-                              $isClaimed = \App\Http\Controllers\PetController::petIsAccepted($pet, $allClaims);
                               if ($isAdopted || $isClaimed) {
                                 $i = 1; $p = -1; $id_tab = 'accepted-tab';
                                 if ($isAdopted) {
