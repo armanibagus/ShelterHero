@@ -119,6 +119,7 @@ class UserController extends Controller
             // store the image
             $file_name = $img->getClientOriginalName();
             $img_path = $img->store('public/profile-picture');
+
             // store image details into database
             $user->update([
                 'photo_title' => $file_name,
