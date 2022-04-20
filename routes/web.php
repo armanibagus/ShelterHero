@@ -49,7 +49,6 @@ Route::resource('donations', \App\Http\Controllers\DonationController::class);
 Route::resource('donates', \App\Http\Controllers\DonateController::class);
 
 // User Controller
-Route::get('/users/pet-shelter', [\App\Http\Controllers\UserController::class, 'allPetShelter'])->name('users.view-pet-shelters');
 Route::resource('users', \App\Http\Controllers\UserController::class);
 
 // HealthCheck Controller

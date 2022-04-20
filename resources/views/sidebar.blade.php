@@ -106,7 +106,7 @@
                         </a>
                     </li>
                     <li class="nav-header">Views</li>
-                    <li class="nav-item {{Request::is('pets/lost-pets') || Request::is('pets') || Request::is('users/pet-shelter') ? 'menu-open' : ''}}">
+                    <li class="nav-item {{Request::is('pets/lost-pets') || Request::is('pets') || Request::is('users') ? 'menu-open' : ''}}">
                         <a href="#" class="nav-link ">
                                 <i class="nav-icon fas fa-paw"></i>
                             <p>
@@ -128,7 +128,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="{{route('users.view-pet-shelters')}}" class="nav-link {{Request::is('users/pet-shelter') ? 'active' : ''}}">
+                                <a href="{{route('users.index')}}" class="nav-link {{Request::is('users') ? 'active' : ''}}">
                                     <i class="far fa-arrow-alt-circle-right nav-icon"></i>
                                     <p>Pet Shelters</p>
                                 </a>
@@ -144,13 +144,13 @@
                 @elseif(Auth::user()->role === 'volunteer')
                     <li class="nav-header">Request</li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
+                        <a href="{{ route('health-checks.index') }}" class="nav-link {{Request::is('health-checks') ? 'active' : ''}}">
                             <i class="nav-icon fas fa-heartbeat"></i>
                             <p>Pet Medical Checkup</p>
                         </a>
                     </li>
                     <li class="nav-header">Views</li>
-                    <li class="nav-item {{Request::is('pets') || Request::is('users/pet-shelter') ? 'menu-open' : ''}}">
+                    <li class="nav-item {{Request::is('pets') || Request::is('users') ? 'menu-open' : ''}}">
                         <a href="#" class="nav-link">
                             <i class="nav-icon fas fa-paw"></i>
                             <p>
@@ -166,7 +166,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="{{route('users.view-pet-shelters')}}" class="nav-link {{Request::is('users/pet-shelter') ? 'active' : ''}}">
+                                <a href="{{route('users.index')}}" class="nav-link {{Request::is('users') ? 'active' : ''}}">
                                     <i class="far fa-arrow-alt-circle-right nav-icon"></i>
                                     <p>Pet Shelters</p>
                                 </a>
@@ -267,7 +267,7 @@
                     </li>
                     <li class="nav-header">Volunteer</li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
+                        <a href="{{route('users.index')}}" class="nav-link {{Request::is('users') ? 'active' : ''}}">
                             <i class="nav-icon fas fa-user-md"></i>
                             <p>Request Volunteer</p>
                         </a>

@@ -148,7 +148,7 @@
 <!-- ======= Hero Section ======= -->
 <section id="hero">
     <div class="hero-container" data-aos="zoom-in" data-aos-delay="100">
-        <h1 style="color: black">Welcome to <img src="{{asset('artefact/dist/img/shelter-hero-logo.png')}}"></h1><br>
+        <h1 style="color: black">Welcome to <img src="{{asset('artefact/dist/img/shelter-hero-logo.png')}}" alt="shelter-hero-logo"></h1><br>
         <h2 style="color: black">“If you pick up a starving dog and make him prosperous he will not bite you.<br>
         This is the principal difference between a dog and man.”</h2>
 

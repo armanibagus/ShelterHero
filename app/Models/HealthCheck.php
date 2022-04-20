@@ -8,4 +8,20 @@ use Illuminate\Database\Eloquent\Model;
 class HealthCheck extends Model
 {
     use HasFactory;
+
+    protected $table = 'health_checks';
+    public $timestamps = true;
+
+    protected $fillable = [
+        'shelter_id',
+        'volunteer_id',
+        'checkup_date',
+        'description',
+        'status',
+        'feedback'
+    ];
+
+    protected $dates = [
+        'checkup_date'
+    ];
 }

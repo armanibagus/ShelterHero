@@ -13,7 +13,7 @@ class UserController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('verified')->only('allPetShelter', 'show');
+        $this->middleware('verified')->only('index', 'show');
     }
     /**
      * Display a listing of the resource.
@@ -22,15 +22,16 @@ class UserController extends Controller
      */
     public function index()
     {
-        //
-    }
-
-    public function allPetShelter() {
         if (auth()->user()->role == 'user' || auth()->user()->role == 'volunteer') {
-            $pet_shelters = DB::table('users')
+            $users = DB::table('users')
                 ->where([['role', '=', 'pet_shelter'], ['email_verified_at', '!=', null]])
                 ->get();
-            return view('general.pet-shelter-view', compact('pet_shelters'));
+            return view('general.user-view', compact('users'));
+        } else if (auth()->user()->role == 'pet_shelter') {
+            $users = DB::table('users')
+                ->where([['role', '=', 'volunteer'], ['email_verified_at', '!=', null]])
+                ->get();
+            return view('general.user-view', compact('users'));
         } else {
             return abort(404);
         }
@@ -79,8 +80,23 @@ class UserController extends Controller
             $acc_adopt_pets = PetController::getAcceptedPet($pets, $petAdopt);
             $acc_claim_pets = PetController::getAcceptedPet($pets, $petClaims);
             // display
-            return view('general.pet-shelter-details',
+            return view('general.user-details',
                 compact('user', 'pets', 'acc_adopt_pets', 'acc_claim_pets'));
+        } else if (auth()->user()->role == 'pet_shelter') {
+            /* database pet nya masih belum selesai */
+            $pets = DB::table('users')
+                ->join('pets', 'pets.shelter_id', '=', 'users.id')
+                ->select(['pets.*', 'users.name', 'users.address'])
+                ->latest()->get();
+            $health_check = DB::table('health_checks')
+                ->where([['shelter_id', '=', auth()->user()->id],
+                         ['volunteer_id', '=', $user->id]])
+                ->latest()->get();
+            $accepted_request = DB::table('health_checks')
+                ->where([['volunteer_id', '=', $user->id],
+                         ['status', '=', 'Accepted']])->count();
+            return view('general.user-details',
+                    compact('user','pets', 'health_check', 'accepted_request'));
         } else {
             return abort(404);
         }

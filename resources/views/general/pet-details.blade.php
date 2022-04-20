@@ -247,7 +247,7 @@
                                         @if($btnName == 'Request for Adoption')
                                             <i class="fas fa-hand-holding-heart fa-lg mr-2"></i>
                                         @else
-                                            <i class="fas fas fa-check-circle fa-lg mr-2"></i>
+                                            <i class="fas fa-check-circle fa-lg mr-2"></i>
                                         @endif
                                         {{ __($btnName) }}
                                     </button>
