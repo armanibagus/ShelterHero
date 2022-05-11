@@ -35,6 +35,9 @@
     // donations
     $total_donations = \App\Models\Donate::count();
 
+    // donation request
+    $all_donation_request = \App\Models\Donation::where('expiry_date', '>', \Carbon\Carbon::now())->latest()->get();
+
     // lost pet claims
     $new_pets = \App\Models\Pet::join('users', 'users.id', 'pets.shelter_id')
                 ->where([['pets.status', '=', 'Confirmed'],
@@ -63,10 +66,9 @@
             <ul>
                 <li><a class="nav-link scrollto active" href="#hero">Home</a></li>
                 <li><a class="nav-link scrollto" href="#about">About</a></li>
-                <li><a class="nav-link scrollto" href="#adopt-pet">Adopt a Pet</a></li>
-                <li><a class="nav-link scrollto" href="#portfolio">Portfolio</a></li>
-                <li><a class="nav-link scrollto" href="#team">Team</a></li>
-                <li><a class="nav-link scrollto" href="#contact">Contact</a></li>
+                <li><a class="nav-link scrollto" href="#adopt-pet">Adoption</a></li>
+                <li><a class="nav-link scrollto" href="#lost-pet">Lost Pet</a></li>
+                <li><a class="nav-link scrollto" href="#donate">Donate</a></li>
                 @auth
                     @php
                         if(Auth::user()->role == 'user')
@@ -202,15 +204,15 @@
                     </div>
                     <div class="icon-box" data-aos="fade-up" data-aos-delay="200">
                         <div class="icon"><i class="fas fa-check"></i></div>
-                        <h4 class="title"><a href="">Lost Pet Claim</a></h4>
+                        <h4 class="title"><a href="#lost-pet">Lost Pet Claim</a></h4>
                         <p class="description">
                             Make a claim of your lost pet in the ShelterHero website
-                            that is being registered and fostered by pet shelter.
+                            that is being registered and fostered by our pet shelter.
                         </p>
                     </div>
                     <div class="icon-box" data-aos="fade-up" data-aos-delay="300">
                         <div class="icon"><i class='bx bx-donate-heart'></i></div>
-                        <h4 class="title"><a href="">Donation</a></h4>
+                        <h4 class="title"><a href="#donate">Donation</a></h4>
                         <p class="description">
                             Send donation to help pet shelters to feed and give medical treatment to their pets.
                         </p>
@@ -263,7 +265,9 @@
             <div class="section-header">
                 <h3 class="section-title">Adopt a Pet</h3>
                 <p class="section-description">
-                    Below are list of pets available for adoption in ShelterHero website
+                    Find your pet bestfriend now!
+                    Our pets are animals that were rescued from disadvantaged situation.
+                    You can now help them by adopting and giving them a new home and family!
                 </p>
             </div>
             <div class="row justify-content-center">
@@ -311,246 +315,120 @@
         </div>
     </section>
 
-    <section id="portfolio" class="portfolio">
+    <section id="lost-pet" class="lost-pet">
         <div class="container" data-aos="fade-up">
             <div class="section-header">
-                <h3 class="section-title">Portfolio</h3>
-                <p class="section-description">Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque</p>
+                <h3 class="section-title">Claim a Lost Pet</h3>
+                <p class="section-description">
+                    Now you can search for your lost pet through the internet!
+                    Using ShelterHero, you will be able to look for pets
+                    that are registered as a lost pet by our pet shelters!
+                </p>
             </div>
-
-            <div class="row" data-aos="fade-up" data-aos-delay="100">
-                <div class="col-lg-12 d-flex justify-content-center">
-                    <ul id="portfolio-flters">
-                        <li data-filter="*" class="filter-active">All</li>
-                        <li data-filter=".filter-app">App</li>
-                        <li data-filter=".filter-card">Card</li>
-                        <li data-filter=".filter-web">Web</li>
-                    </ul>
-                </div>
+            <div class="row justify-content-center">
+                @if(count($lost_pets) > 0)
+                    @php
+                        $count_lost = 0;
+                        foreach($lost_pets as $pet) {
+                          if ($count_lost < 3)
+                            $count_lost++;
+                          else
+                            break;
+                    @endphp
+                    <div class="col-lg-4 col-md-6" data-aos="zoom-in">
+                        <a class="btn" style="padding: 0" href="{{route('pets.show', $pet->id)}}">
+                            @php
+                                $pet_img = \App\Models\Image::where('pet_id', '=', $pet->id)->first();
+                                $title = '';
+                                if ($pet_img != NULL)
+                                  $title = trim(str_replace("public/images/","", $pet_img->path));
+                            @endphp
+                            <div style="text-align: center; margin-bottom: -5px">
+                                <img src="{{ asset('storage/images/'.$title) }}" class="img-fluid" alt="Responsive image" style="border-radius: 2%; object-fit: cover; height: 280px; width: 500px">
+                            </div>
+                            <div class="box">
+                                <div class="icon"><i class="fas fa-check"></i></div>
+                                <h4 class="title">
+                                    {{ __($pet->nickname) }}
+                                    @if($pet->sex === 'Male')
+                                        <i class="nav-icon text-blue fas fa-mars"></i>
+                                    @elseif($pet->sex === 'Female')
+                                        <i class="nav-icon text-pink fas fa-venus"></i>
+                                    @endif
+                                </h4>
+                                <p class="text-muted">{{ __($pet->size) }} • {{ __($pet->petType) }}</p>
+                                {{ __($pet->name) }} <br>
+                                <small class="text-muted">{{$pet->address}}</small>
+                            </div>
+                        </a>
+                    </div>
+                    @php } @endphp
+                @else
+                    <p class="text-center m-0 p-3">{{ __('No pet available') }}</p>
+                @endif
             </div>
-
-            <div class="row portfolio-container" data-aos="fade-up" data-aos-delay="200">
-
-                <div class="col-lg-4 col-md-6 portfolio-item filter-app">
-                    <img src="assets/img/portfolio/portfolio-1.jpg" class="img-fluid" alt="">
-                    <div class="portfolio-info">
-                        <h4>App 1</h4>
-                        <p>App</p>
-                        <a href="assets/img/portfolio/portfolio-1.jpg" data-gallery="portfolioGallery" class="portfolio-lightbox preview-link" title="App 1"><i class="bx bx-plus"></i></a>
-                        <a href="portfolio-details.html" class="details-link" title="More Details"><i class="bx bx-link"></i></a>
-                    </div>
-                </div>
-
-                <div class="col-lg-4 col-md-6 portfolio-item filter-web">
-                    <img src="assets/img/portfolio/portfolio-2.jpg" class="img-fluid" alt="">
-                    <div class="portfolio-info">
-                        <h4>Web 3</h4>
-                        <p>Web</p>
-                        <a href="assets/img/portfolio/portfolio-2.jpg" data-gallery="portfolioGallery" class="portfolio-lightbox preview-link" title="Web 3"><i class="bx bx-plus"></i></a>
-                        <a href="portfolio-details.html" class="details-link" title="More Details"><i class="bx bx-link"></i></a>
-                    </div>
-                </div>
-
-                <div class="col-lg-4 col-md-6 portfolio-item filter-app">
-                    <img src="assets/img/portfolio/portfolio-3.jpg" class="img-fluid" alt="">
-                    <div class="portfolio-info">
-                        <h4>App 2</h4>
-                        <p>App</p>
-                        <a href="assets/img/portfolio/portfolio-3.jpg" data-gallery="portfolioGallery" class="portfolio-lightbox preview-link" title="App 2"><i class="bx bx-plus"></i></a>
-                        <a href="portfolio-details.html" class="details-link" title="More Details"><i class="bx bx-link"></i></a>
-                    </div>
-                </div>
-
-                <div class="col-lg-4 col-md-6 portfolio-item filter-card">
-                    <img src="assets/img/portfolio/portfolio-4.jpg" class="img-fluid" alt="">
-                    <div class="portfolio-info">
-                        <h4>Card 2</h4>
-                        <p>Card</p>
-                        <a href="assets/img/portfolio/portfolio-4.jpg" data-gallery="portfolioGallery" class="portfolio-lightbox preview-link" title="Card 2"><i class="bx bx-plus"></i></a>
-                        <a href="portfolio-details.html" class="details-link" title="More Details"><i class="bx bx-link"></i></a>
-                    </div>
-                </div>
-
-                <div class="col-lg-4 col-md-6 portfolio-item filter-web">
-                    <img src="assets/img/portfolio/portfolio-5.jpg" class="img-fluid" alt="">
-                    <div class="portfolio-info">
-                        <h4>Web 2</h4>
-                        <p>Web</p>
-                        <a href="assets/img/portfolio/portfolio-5.jpg" data-gallery="portfolioGallery" class="portfolio-lightbox preview-link" title="Web 2"><i class="bx bx-plus"></i></a>
-                        <a href="portfolio-details.html" class="details-link" title="More Details"><i class="bx bx-link"></i></a>
-                    </div>
-                </div>
-
-                <div class="col-lg-4 col-md-6 portfolio-item filter-app">
-                    <img src="assets/img/portfolio/portfolio-6.jpg" class="img-fluid" alt="">
-                    <div class="portfolio-info">
-                        <h4>App 3</h4>
-                        <p>App</p>
-                        <a href="assets/img/portfolio/portfolio-6.jpg" data-gallery="portfolioGallery" class="portfolio-lightbox preview-link" title="App 3"><i class="bx bx-plus"></i></a>
-                        <a href="portfolio-details.html" class="details-link" title="More Details"><i class="bx bx-link"></i></a>
-                    </div>
-                </div>
-
-                <div class="col-lg-4 col-md-6 portfolio-item filter-card">
-                    <img src="assets/img/portfolio/portfolio-7.jpg" class="img-fluid" alt="">
-                    <div class="portfolio-info">
-                        <h4>Card 1</h4>
-                        <p>Card</p>
-                        <a href="assets/img/portfolio/portfolio-7.jpg" data-gallery="portfolioGallery" class="portfolio-lightbox preview-link" title="Card 1"><i class="bx bx-plus"></i></a>
-                        <a href="portfolio-details.html" class="details-link" title="More Details"><i class="bx bx-link"></i></a>
-                    </div>
-                </div>
-
-                <div class="col-lg-4 col-md-6 portfolio-item filter-card">
-                    <img src="assets/img/portfolio/portfolio-8.jpg" class="img-fluid" alt="">
-                    <div class="portfolio-info">
-                        <h4>Card 3</h4>
-                        <p>Card</p>
-                        <a href="assets/img/portfolio/portfolio-8.jpg" data-gallery="portfolioGallery" class="portfolio-lightbox preview-link" title="Card 3"><i class="bx bx-plus"></i></a>
-                        <a href="portfolio-details.html" class="details-link" title="More Details"><i class="bx bx-link"></i></a>
-                    </div>
-                </div>
-
-                <div class="col-lg-4 col-md-6 portfolio-item filter-web">
-                    <img src="assets/img/portfolio/portfolio-9.jpg" class="img-fluid" alt="">
-                    <div class="portfolio-info">
-                        <h4>Web 3</h4>
-                        <p>Web</p>
-                        <a href="assets/img/portfolio/portfolio-9.jpg" data-gallery="portfolioGallery" class="portfolio-lightbox preview-link" title="Web 3"><i class="bx bx-plus"></i></a>
-                        <a href="portfolio-details.html" class="details-link" title="More Details"><i class="bx bx-link"></i></a>
-                    </div>
-                </div>
-
-            </div>
-
         </div>
-    </section><!-- End Portfolio Section -->
+    </section><!-- End lost-pet Section -->
 
     <!-- ======= Team Section ======= -->
-    <section id="team">
+    <section id="donate">
         <div class="container" data-aos="fade-up">
             <div class="section-header">
-                <h3 class="section-title">Team</h3>
-                <p class="section-description">Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque</p>
+                <h3 class="section-title">Send a Donation</h3>
+                <p class="section-description">
+                    Help our pet shelter by sending donation!
+                    The donation will be used for the needs of our pet such as feeding,
+                    medical support, and many more! Help them now!
+                </p>
             </div>
-            <div class="row">
-                <div class="col-lg-3 col-md-6">
-                    <div class="member" data-aos="fade-up" data-aos-delay="100">
-                        <div class="pic"><img src="assets/img/team-1.jpg" alt=""></div>
-                        <h4>Walter White</h4>
-                        <span>Chief Executive Officer</span>
-                        <div class="social">
-                            <a href=""><i class="bi bi-twitter"></i></a>
-                            <a href=""><i class="bi bi-facebook"></i></a>
-                            <a href=""><i class="bi bi-instagram"></i></a>
-                            <a href=""><i class="bi bi-linkedin"></i></a>
-                        </div>
-                    </div>
-                </div>
+            <div class="row justify-content-center">
+                @if(count($all_donation_request) > 0)
+                    @php
+                        $count_donate = 0;
+                        foreach($all_donation_request as $donation) {
+                          if ($count_donate < 3)
+                            $count_donate++;
+                          else
+                            break;
+                    @endphp
+                    <div class="col-lg-4 col-md-6" data-aos="zoom-in">
+                        <a class="btn " style="padding: 0" href="{{route('donations.show', $donation->id)}}">
+                            @php
+                                $images = DB::table('donation_imgs')->latest()->get();
+                                $title = '';
+                                foreach ($images as $image) {
+                                  if($image->donation_id == $donation->id){
+                                    $title = trim(str_replace("public/donation-img/","", $image->path));
+                                    break;
+                                  }
+                                }
 
-                <div class="col-lg-3 col-md-6">
-                    <div class="member" data-aos="fade-up" data-aos-delay="200">
-                        <div class="pic"><img src="assets/img/team-2.jpg" alt=""></div>
-                        <h4>Sarah Jhinson</h4>
-                        <span>Product Manager</span>
-                        <div class="social">
-                            <a href=""><i class="bi bi-twitter"></i></a>
-                            <a href=""><i class="bi bi-facebook"></i></a>
-                            <a href=""><i class="bi bi-instagram"></i></a>
-                            <a href=""><i class="bi bi-linkedin"></i></a>
-                        </div>
+                                // get the progress percentage
+                                $progress = $donation->amount_get / $donation->amount_need * 100;
+                            @endphp
+                            <div style="text-align: center">
+                                <img src="{{ asset('storage/donation-img/'.$title) }}" class="img-fluid" alt="Responsive image" style="border-radius: 2%; object-fit: cover; height: 280px; width: 500px">
+                            </div>
+                            <div class="card-body text-left">
+                                <strong class="text-lg">{{ __($donation->title) }}</strong><br>
+                                {{ __($donation->name) }}<br>
+                                <div class="progress progress-xs mt-3">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: {{$progress}}%" aria-valuenow="{{$progress}}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <p class="text-sm text-right mb-0">Total donation <strong>@currency($donation->amount_get)</strong></p>
+                            </div>
+                            <div class="card-footer text-sm text-right text-muted" style="padding-top: 15px">
+                                {{ __(\Carbon\Carbon::createFromDate($donation->expiry_date)->diffForHumans()) }}
+                            </div>
+                        </a>
                     </div>
-                </div>
-
-                <div class="col-lg-3 col-md-6">
-                    <div class="member" data-aos="fade-up" data-aos-delay="300">
-                        <div class="pic"><img src="assets/img/team-3.jpg" alt=""></div>
-                        <h4>William Anderson</h4>
-                        <span>CTO</span>
-                        <div class="social">
-                            <a href=""><i class="bi bi-twitter"></i></a>
-                            <a href=""><i class="bi bi-facebook"></i></a>
-                            <a href=""><i class="bi bi-instagram"></i></a>
-                            <a href=""><i class="bi bi-linkedin"></i></a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-3 col-md-6">
-                    <div class="member" data-aos="fade-up" data-aos-delay="400">
-                        <div class="pic"><img src="assets/img/team-4.jpg" alt=""></div>
-                        <h4>Amanda Jepson</h4>
-                        <span>Accountant</span>
-                        <div class="social">
-                            <a href=""><i class="bi bi-twitter"></i></a>
-                            <a href=""><i class="bi bi-facebook"></i></a>
-                            <a href=""><i class="bi bi-instagram"></i></a>
-                            <a href=""><i class="bi bi-linkedin"></i></a>
-                        </div>
-                    </div>
-                </div>
+                    @php } @endphp
+                @else
+                    <p class="text-center m-0 p-3">{{ __('No donation request Available') }}</p>
+                @endif
             </div>
-
         </div>
     </section><!-- End Team Section -->
-
-    <!-- ======= Contact Section ======= -->
-   {{-- <section id="contact">
-        <div class="container">
-            <div class="section-header">
-                <h3 class="section-title">Contact</h3>
-                <p class="section-description">Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque</p>
-            </div>
-        </div>
-        <div class="container mt-5">
-            <div class="row justify-content-center">
-                <div class="col-lg-3 col-md-4">
-                    <div class="info">
-                        <div>
-                            <i class="bi bi-envelope"></i>
-                            <p>info@example.com</p>
-                        </div>
-                        <div>
-                            <i class="bi bi-phone"></i>
-                            <p>+1 5589 55488 55s</p>
-                        </div>
-                    </div>
-                    <div class="social-links">
-                        <a class="twitter"><i class="bi bi-twitter"></i></a>
-                        <a class="facebook"><i class="bi bi-facebook"></i></a>
-                        <a class="instagram"><i class="bi bi-instagram"></i></a>
-                        <a class="instagram"><i class="bi bi-instagram"></i></a>
-                        <a class="linkedin"><i class="bi bi-linkedin"></i></a>
-                    </div>
-                </div>
-                <div class="col-lg-5 col-md-8">
-                    <div class="form">
-                        <form action="{{asset('artefact/Regna/forms/contact.php')}}" method="post" role="form" class="php-email-form">
-                            <div class="form-group">
-                                <input type="text" name="name" class="form-control" id="name" placeholder="Your Name" required>
-                            </div>
-                            <div class="form-group mt-3">
-                                <input type="email" class="form-control" name="email" id="email" placeholder="Your Email" required>
-                            </div>
-                            <div class="form-group mt-3">
-                                <input type="text" class="form-control" name="subject" id="subject" placeholder="Subject" required>
-                            </div>
-                            <div class="form-group mt-3">
-                                <textarea class="form-control" name="message" rows="5" placeholder="Message" required></textarea>
-                            </div>
-                            <div class="my-3">
-                                <div class="loading">Loading</div>
-                                <div class="error-message"></div>
-                                <div class="sent-message">Your message has been sent. Thank you!</div>
-                            </div>
-                            <div class="text-center"><button type="submit">Send Message</button></div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>--}}<!-- End Contact Section -->
-
     <section id="call-to-action">
         <div class="container">
             <div class="row" data-aos="zoom-in">

@@ -78,7 +78,7 @@
             </div>
         </div>
         <div class="card">
-            @if($register_pet != NULL)
+            @if(count($register_pet) > 0)
                 @php
                             $pet = $register_pet->first();
                 @endphp
