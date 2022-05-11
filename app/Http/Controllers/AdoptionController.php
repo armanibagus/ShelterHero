@@ -161,7 +161,13 @@ class AdoptionController extends Controller
      */
     public function show(Adoption $adoption)
     {
-        //
+        // validate the authorities of this action
+        if (auth()->user()->role == 'user') {
+            $data = $adoption;
+            return view('pet_shelter.confirmation-page', compact('data'));
+        } else {
+            return abort(404);
+        }
     }
 
     /**

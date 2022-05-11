@@ -15,6 +15,7 @@ class HealthCheck extends Model
     protected $fillable = [
         'shelter_id',
         'volunteer_id',
+        'pet_id',
         'checkup_date',
         'description',
         'status',

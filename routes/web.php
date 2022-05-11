@@ -49,7 +49,11 @@ Route::resource('donations', \App\Http\Controllers\DonationController::class);
 Route::resource('donates', \App\Http\Controllers\DonateController::class);
 
 // User Controller
+Route::get('/users/activity-history', [\App\Http\Controllers\UserController::class, 'activityHistory'])->name('users.activityHistory');
 Route::resource('users', \App\Http\Controllers\UserController::class);
 
 // HealthCheck Controller
 Route::resource('health-checks', \App\Http\Controllers\HealthCheckController::class);
+
+// Medical Report Controller
+Route::resource('medical-reports', \App\Http\Controllers\MedicalReportController::class);

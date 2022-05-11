@@ -6,6 +6,7 @@ use App\Models\Donate;
 use App\Models\Donation;
 use App\Models\DonationImg;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 
 class DonateController extends Controller
@@ -13,7 +14,8 @@ class DonateController extends Controller
     public function __construct()
     {
         $this->middleware('verified');
-        $this->middleware('user')->except('index', 'show');
+        $this->middleware('user')->only('create', 'store');
+        $this->middleware('petShelter')->only('index', 'edit', 'update');
     }
     /**
      * Display a listing of the resource.
@@ -57,7 +59,6 @@ class DonateController extends Controller
         // validation
         $request->validate([
             'donation_id' => 'required',
-            'user_id' => 'required',
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255'],
             'phone' => ['required', 'string', 'max:15'],
@@ -79,7 +80,16 @@ class DonateController extends Controller
             DonationImg::insert($store);
         }
         // store and update all the data
-        $new_donate = Donate::create($request->all());
+        $new_donate = Donate::create([
+            'donation_id' => Crypt::decrypt($request['donation_id']),
+            'user_id' => auth()->user()->id,
+            'name' => $request['name'],
+            'email' => $request['email'],
+            'phone' => $request['phone'],
+            'payment_method' => $request['payment_method'],
+            'donate_amount' => $request['donate_amount'],
+            'comment' => $request['comment']
+        ]);
         DonationImg::where([['type', '=','donate'], ['donate_id', null]])
             ->update(['donate_id' => $new_donate->id]);
 
@@ -95,7 +105,8 @@ class DonateController extends Controller
     public function show(Donate $donate)
     {
         if (auth()->user()->role == 'user' || auth()->user()->role == 'pet_shelter') {
-            return view('general.donate-details', compact('donate'));
+            $donation = Donation::find($donate->donation_id);
+            return view('general.donate-details', compact('donate', 'donation'));
         } else {
             return abort(404);
         }
@@ -109,7 +120,12 @@ class DonateController extends Controller
      */
     public function edit(Donate $donate)
     {
-        //
+        if (auth()->user()->role == 'pet_shelter') {
+            $donation = Donation::find($donate->donation_id);
+            return view('general.donate-details', compact('donate', 'donation'));
+        } else {
+            return abort(404);
+        }
     }
 
     /**
@@ -117,7 +133,7 @@ class DonateController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \App\Models\Donate  $donate
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function update(Request $request, Donate $donate)
     {
@@ -127,17 +143,15 @@ class DonateController extends Controller
             'feedback' => ['required', 'string', 'max:255']
         ]);
         // update data
-        $donate->update($request->all());
-        $donation_id = $donate->donation_id;
-        $donate_amount = $donate->donate_amount;
+        $donate->update([
+            'status' => Crypt::decrypt($request['status']),
+            'feedback' => $request['feedback']
+        ]);
         if($donate->status == 'Accepted') {
-            $get_donation = DB::table('donations')->where('id', '=', $donation_id)->latest()->get();
-            $amount_get = 0;
-            foreach ($get_donation as $donation) {
-                $amount_get = $donation->amount_get;
-            }
-            $amount_get += $donate_amount;
-            Donation::where('id', '=', $donation_id)->update(['amount_get' => $amount_get]);
+            $donation = Donation::where('id', '=', $donate->donation_id)->first();
+            $amount_get = $donation->amount_get;
+            $amount_get += $donate->donate_amount;
+            $donation->update(['amount_get' => $amount_get]);
         }
         return redirect()->route('donates.show', $donate->id)
             ->with('success', 'Successfully Updated!');

@@ -28,7 +28,29 @@
     <link href="{{asset('artefact/Regna/assets/css/style.css')}}" rel="stylesheet">
 </head>
 <body>
+@php
+    // pets
+    $total_pets = \App\Models\Pet::where([['status', '=', 'Confirmed'], ['pickUpDate', '!=', NULL]])->count();
 
+    // donations
+    $total_donations = \App\Models\Donate::count();
+
+    // lost pet claims
+    $new_pets = \App\Models\Pet::join('users', 'users.id', 'pets.shelter_id')
+                ->where([['pets.status', '=', 'Confirmed'],
+                         ['pets.pickUpDate', '>', \Carbon\Carbon::now()->subDays(7)]])
+                ->select(['pets.*', 'users.name', 'users.address'])->latest()->get();
+    $claims = DB::table('lost_pet_claims')->get();
+    $lost_pets = \App\Http\Controllers\PetController::validatePets($new_pets, $claims);
+
+    // pet adoption
+    $old_pet = \App\Models\Pet::join('users', 'users.id', 'pets.shelter_id')
+                ->where([['pets.status', '=', 'Confirmed'],
+                         ['pets.pickUpDate', '<', \Carbon\Carbon::now()->subDays(7)]])
+                ->select(['pets.*', 'users.name', 'users.address'])->latest()->get();
+    $adoption = DB::table('adoptions')->get();
+    $adopt_pets = \App\Http\Controllers\PetController::validatePets($old_pet, $adoption);
+@endphp
 <!-- ======= Header ======= -->
 <header id="header" class="fixed-top d-flex align-items-center header-transparent">
     <div class="container d-flex justify-content-between align-items-center wrapper">
@@ -41,7 +63,7 @@
             <ul>
                 <li><a class="nav-link scrollto active" href="#hero">Home</a></li>
                 <li><a class="nav-link scrollto" href="#about">About</a></li>
-                <li><a class="nav-link scrollto" href="#services">Services</a></li>
+                <li><a class="nav-link scrollto" href="#adopt-pet">Adopt a Pet</a></li>
                 <li><a class="nav-link scrollto" href="#portfolio">Portfolio</a></li>
                 <li><a class="nav-link scrollto" href="#team">Team</a></li>
                 <li><a class="nav-link scrollto" href="#contact">Contact</a></li>
@@ -163,36 +185,39 @@
     <section id="about">
         <div class="container" data-aos="fade-up">
             <div class="row about-container">
-
                 <div class="col-lg-6 content order-lg-1 order-2">
                     <h2 class="title"><strong>About Us</strong></h2>
                     <p>
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                        ShelterHero is a web-based application where users are able to help
+                        disadvantaged animals to find a safe home, get a medical support
+                        as well as helping people to find their lost pet.
                     </p>
-
                     <div class="icon-box" data-aos="fade-up" data-aos-delay="100">
-                        <div class="icon"><i class="bi bi-briefcase"></i></div>
-                        <h4 class="title"><a href="">Eiusmod Tempor</a></h4>
-                        <p class="description">Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi</p>
+                        <div class="icon"><i class='nav-icon fas fa-paw'></i></div>
+                        <h4 class="title"><a href="#adopt-pet">Pet Adoption</a></h4>
+                        <p class="description">
+                            Find out a bunch of pet that is available
+                            for adoption in any pet shelter that is registered in ShelterHero website.
+                        </p>
                     </div>
-
                     <div class="icon-box" data-aos="fade-up" data-aos-delay="200">
-                        <div class="icon"><i class="bi bi-card-checklist"></i></div>
-                        <h4 class="title"><a href="">Magni Dolores</a></h4>
-                        <p class="description">Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum</p>
+                        <div class="icon"><i class="fas fa-check"></i></div>
+                        <h4 class="title"><a href="">Lost Pet Claim</a></h4>
+                        <p class="description">
+                            Make a claim of your lost pet in the ShelterHero website
+                            that is being registered and fostered by pet shelter.
+                        </p>
                     </div>
-
                     <div class="icon-box" data-aos="fade-up" data-aos-delay="300">
-                        <div class="icon"><i class="bi bi-binoculars"></i></div>
-                        <h4 class="title"><a href="">Dolor Sitema</a></h4>
-                        <p class="description">Minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat tarad limino ata</p>
+                        <div class="icon"><i class='bx bx-donate-heart'></i></div>
+                        <h4 class="title"><a href="">Donation</a></h4>
+                        <p class="description">
+                            Send donation to help pet shelters to feed and give medical treatment to their pets.
+                        </p>
                     </div>
-
                 </div>
-
                 <div class="col-lg-6 background order-lg-2 order-1" data-aos="fade-left" data-aos-delay="100"></div>
             </div>
-
         </div>
     </section><!-- End About Section -->
 
@@ -200,29 +225,31 @@
     <section id="facts">
         <div class="container" data-aos="fade-up">
             <div class="section-header">
-                <h3 class="section-title">Facts</h3>
-                <p class="section-description">Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque</p>
+                <h3 class="section-title">Fact</h3>
+                <p class="section-description">
+                    Join with us! Save many pets and help them find their home together
+                </p>
             </div>
             <div class="row counters">
 
                 <div class="col-lg-3 col-6 text-center">
-                    <span data-purecounter-start="0" data-purecounter-end="232" data-purecounter-duration="1" class="purecounter"></span>
-                    <p>Clients</p>
+                    <span data-purecounter-start="0" data-purecounter-end="{{$total_pets}}" data-purecounter-duration="1" class="purecounter"></span>
+                    <p>Pets</p>
                 </div>
 
                 <div class="col-lg-3 col-6 text-center">
-                    <span data-purecounter-start="0" data-purecounter-end="534" data-purecounter-duration="1" class="purecounter"></span>
-                    <p>Projects</p>
+                    <span data-purecounter-start="0" data-purecounter-end="{{$claims->count()}}" data-purecounter-duration="1" class="purecounter"></span>
+                    <p>Adoptions</p>
                 </div>
 
                 <div class="col-lg-3 col-6 text-center">
-                    <span data-purecounter-start="0" data-purecounter-end="1463" data-purecounter-duration="1" class="purecounter"></span>
-                    <p>Hours Of Support</p>
+                    <span data-purecounter-start="0" data-purecounter-end="{{$adoption->count()}}" data-purecounter-duration="1" class="purecounter"></span>
+                    <p>Lost Pet Claims</p>
                 </div>
 
                 <div class="col-lg-3 col-6 text-center">
-                    <span data-purecounter-start="0" data-purecounter-end="42" data-purecounter-duration="1" class="purecounter"></span>
-                    <p>Hard Workers</p>
+                    <span data-purecounter-start="0" data-purecounter-end="{{$total_donations}}" data-purecounter-duration="1" class="purecounter"></span>
+                    <p>Donations</p>
                 </div>
 
             </div>
@@ -231,78 +258,59 @@
     </section><!-- End Facts Section -->
 
     <!-- ======= Services Section ======= -->
-    <section id="services">
+    <section id="adopt-pet">
         <div class="container" data-aos="fade-up">
             <div class="section-header">
-                <h3 class="section-title">Services</h3>
-                <p class="section-description">Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque</p>
+                <h3 class="section-title">Adopt a Pet</h3>
+                <p class="section-description">
+                    Below are list of pets available for adoption in ShelterHero website
+                </p>
             </div>
-            <div class="row">
-                <div class="col-lg-4 col-md-6" data-aos="zoom-in">
-                    <div class="box">
-                        <div class="icon"><a href=""><i class="bi bi-briefcase"></i></a></div>
-                        <h4 class="title"><a href="">Lorem Ipsum</a></h4>
-                        <p class="description">Voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident</p>
+            <div class="row justify-content-center">
+                @if(count($adopt_pets) > 0)
+                    @php
+                        $count_adopt = 0;
+                        foreach($adopt_pets as $pet) {
+                          if ($count_adopt < 3)
+                            $count_adopt++;
+                          else
+                            break;
+                    @endphp
+                    <div class="col-lg-4 col-md-6" data-aos="zoom-in">
+                        <a class="btn" style="padding: 0" href="{{route('pets.show', $pet->id)}}">
+                        @php
+                            $pet_img = \App\Models\Image::where('pet_id', '=', $pet->id)->first();
+                            $title = '';
+                            if ($pet_img != NULL)
+                              $title = trim(str_replace("public/images/","", $pet_img->path));
+                        @endphp
+                        <div style="text-align: center; margin-bottom: -5px">
+                            <img src="{{ asset('storage/images/'.$title) }}" class="img-fluid" alt="Responsive image" style="border-radius: 2%; object-fit: cover; height: 280px; width: 500px">
+                        </div>
+                        <div class="box">
+                            <div class="icon"><i class="fas fa-paw"></i></div>
+                            <h4 class="title">
+                                {{ __($pet->nickname) }}
+                                @if($pet->sex === 'Male')
+                                    <i class="nav-icon text-blue fas fa-mars"></i>
+                                @elseif($pet->sex === 'Female')
+                                    <i class="nav-icon text-pink fas fa-venus"></i>
+                                @endif
+                            </h4>
+                            <p class="text-muted">{{ __($pet->size) }} • {{ __($pet->petType) }}</p>
+                            {{ __($pet->name) }} <br>
+                            <small class="text-muted">{{$pet->address}}</small>
+                        </div>
+                        </a>
                     </div>
-                </div>
-                <div class="col-lg-4 col-md-6" data-aos="zoom-in">
-                    <div class="box">
-                        <div class="icon"><a href=""><i class="bi bi-card-checklist"></i></a></div>
-                        <h4 class="title"><a href="">Dolor Sitema</a></h4>
-                        <p class="description">Minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat tarad limino ata</p>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6" data-aos="zoom-in">
-                    <div class="box">
-                        <div class="icon"><a href=""><i class="bi bi-bar-chart"></i></a></div>
-                        <h4 class="title"><a href="">Sed ut perspiciatis</a></h4>
-                        <p class="description">Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur</p>
-                    </div>
-                </div>
-
-                <div class="col-lg-4 col-md-6" data-aos="zoom-in">
-                    <div class="box">
-                        <div class="icon"><a href=""><i class="bi bi-binoculars"></i></a></div>
-                        <h4 class="title"><a href="">Magni Dolores</a></h4>
-                        <p class="description">Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum</p>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6" data-aos="zoom-in">
-                    <div class="box">
-                        <div class="icon"><a href=""><i class="bi bi-brightness-high"></i></a></div>
-                        <h4 class="title"><a href="">Nemo Enim</a></h4>
-                        <p class="description">At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque</p>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6" data-aos="zoom-in">
-                    <div class="box">
-                        <div class="icon"><a href=""><i class="bi bi-calendar4-week"></i></a></div>
-                        <h4 class="title"><a href="">Eiusmod Tempor</a></h4>
-                        <p class="description">Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi</p>
-                    </div>
-                </div>
+                    @php } @endphp
+                @else
+                    <p class="text-center m-0 p-3">{{ __('No pet available') }}</p>
+                @endif
             </div>
-
         </div>
-    </section><!-- End Services Section -->
+    </section>
 
-    <!-- ======= Call To Action Section ======= -->
-    <section id="call-to-action">
-        <div class="container">
-            <div class="row" data-aos="zoom-in">
-                <div class="col-lg-9 text-center text-lg-start">
-                    <h3 class="cta-title">Call To Action</h3>
-                    <p class="cta-text"> Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-                </div>
-                <div class="col-lg-3 cta-btn-container text-center">
-                    <a class="cta-btn align-middle" href="#">Call To Action</a>
-                </div>
-            </div>
-
-        </div>
-    </section><!-- End Call To Action Section -->
-
-    <!-- ======= Portfolio Section ======= -->
     <section id="portfolio" class="portfolio">
         <div class="container" data-aos="fade-up">
             <div class="section-header">
@@ -487,52 +495,37 @@
     </section><!-- End Team Section -->
 
     <!-- ======= Contact Section ======= -->
-    <section id="contact">
+   {{-- <section id="contact">
         <div class="container">
             <div class="section-header">
                 <h3 class="section-title">Contact</h3>
                 <p class="section-description">Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque</p>
             </div>
         </div>
-
-        <!-- Uncomment below if you wan to use dynamic maps -->
-        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d22864.11283411948!2d-73.96468908098944!3d40.630720240038435!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c24fa5d33f083b%3A0xc80b8f06e177fe62!2sNew+York%2C+NY%2C+USA!5e0!3m2!1sen!2sbg!4v1540447494452" width="100%" height="380" frameborder="0" style="border:0" allowfullscreen></iframe>
-
         <div class="container mt-5">
             <div class="row justify-content-center">
-
                 <div class="col-lg-3 col-md-4">
-
                     <div class="info">
-                        <div>
-                            <i class="bi bi-geo-alt"></i>
-                            <p>A108 Adam Street<br>New York, NY 535022</p>
-                        </div>
-
                         <div>
                             <i class="bi bi-envelope"></i>
                             <p>info@example.com</p>
                         </div>
-
                         <div>
                             <i class="bi bi-phone"></i>
                             <p>+1 5589 55488 55s</p>
                         </div>
                     </div>
-
                     <div class="social-links">
-                        <a href="#" class="twitter"><i class="bi bi-twitter"></i></a>
-                        <a href="#" class="facebook"><i class="bi bi-facebook"></i></a>
-                        <a href="#" class="instagram"><i class="bi bi-instagram"></i></a>
-                        <a href="#" class="instagram"><i class="bi bi-instagram"></i></a>
-                        <a href="#" class="linkedin"><i class="bi bi-linkedin"></i></a>
+                        <a class="twitter"><i class="bi bi-twitter"></i></a>
+                        <a class="facebook"><i class="bi bi-facebook"></i></a>
+                        <a class="instagram"><i class="bi bi-instagram"></i></a>
+                        <a class="instagram"><i class="bi bi-instagram"></i></a>
+                        <a class="linkedin"><i class="bi bi-linkedin"></i></a>
                     </div>
-
                 </div>
-
                 <div class="col-lg-5 col-md-8">
                     <div class="form">
-                        <form action="forms/contact.php" method="post" role="form" class="php-email-form">
+                        <form action="{{asset('artefact/Regna/forms/contact.php')}}" method="post" role="form" class="php-email-form">
                             <div class="form-group">
                                 <input type="text" name="name" class="form-control" id="name" placeholder="Your Name" required>
                             </div>
@@ -554,34 +547,35 @@
                         </form>
                     </div>
                 </div>
+            </div>
+        </div>
+    </section>--}}<!-- End Contact Section -->
 
+    <section id="call-to-action">
+        <div class="container">
+            <div class="row" data-aos="zoom-in">
+                <div class="col-lg-9 text-center text-lg-start">
+                    <h3 class="cta-title">Join Us!</h3>
+                    <p class="cta-text">
+                        Gain relation with us and help thousands of pets find their home.
+                        Register to ShelterHero website and find out the latest information about
+                        pet adoption, lost pet claim, donation, and many more.
+                    </p>
+                </div>
+                <div class="col-lg-3 cta-btn-container text-center">
+                    <a class="cta-btn align-middle" href="{{ route('register') }}">Register Now!</a>
+                </div>
             </div>
 
         </div>
-    </section><!-- End Contact Section -->
-
+    </section>
 </main><!-- End #main -->
 
 <!-- ======= Footer ======= -->
 <footer id="footer">
-    <div class="footer-top">
-        <div class="container">
-
-        </div>
-    </div>
-
     <div class="container">
         <div class="copyright">
-            &copy; Copyright <strong>Regna</strong>. All Rights Reserved
-        </div>
-        <div class="credits">
-            <!--
-            All the links in the footer should remain intact.
-            You can delete the links only if you purchased the pro version.
-            Licensing information: https://bootstrapmade.com/license/
-            Purchase the pro version with working PHP/AJAX contact form: https://bootstrapmade.com/buy/?theme=Regna
-          -->
-            Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a>
+            &copy; 2021 - <?php echo date('Y'); ?>, <a class="text-white" href="{{asset('')}}" style="color: #869099">{{config('app.name')}}.</a>
         </div>
     </div>
 </footer><!-- End Footer -->

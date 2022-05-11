@@ -16,7 +16,7 @@
 
  {{$status}}our {{$req_title}} request has been <strong>{{$message['data']->status}}</strong> by {{$shelter->name}}.<br>
     <span style="margin-left: 40px">Request ID: <strong>{{$message['data']->id}}</strong></span><br>
-    <span style="margin-left: 40px">Request Date: <strong>{{ \Carbon\Carbon::parse($message['data']->created_at)->isoFormat('DD MMMM YYYY')}}</strong></span><br>
+    <span style="margin-left: 40px">Request Date: <strong>{{ \Carbon\Carbon::parse($message['data']->created_at)->isoFormat('DD MMMM YYYY') }}</strong></span><br>
     <span style="margin-left: 40px">Pet ID: <strong>{{$pet->id}}</strong></span><br>
     <span style="margin-left: 40px">Pet Nickname: <strong>{{$pet->nickname}}</strong></span><br>
 @if($message['data']->status === 'Accepted')

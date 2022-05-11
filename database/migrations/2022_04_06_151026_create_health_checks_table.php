@@ -17,6 +17,7 @@ class CreateHealthChecksTable extends Migration
             $table->id();
             $table->integer('shelter_id');
             $table->integer('volunteer_id');
+            $table->integer('pet_id');
             $table->date('checkup_date');
             $table->string('description', 500);
             $table->enum('status', ['Pending', 'Rejected', 'Accepted'])->default('Pending');

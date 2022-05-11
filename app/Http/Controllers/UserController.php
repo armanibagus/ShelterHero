@@ -2,18 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Adoption;
+use App\Models\Donate;
+use App\Models\LostPetClaim;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('verified')->only('index', 'show');
+        $this->middleware('verified')->only('index', 'show', 'activityHistory');
+        $this->middleware('user')->only('activityHistory');
     }
     /**
      * Display a listing of the resource.
@@ -32,6 +37,37 @@ class UserController extends Controller
                 ->where([['role', '=', 'volunteer'], ['email_verified_at', '!=', null]])
                 ->get();
             return view('general.user-view', compact('users'));
+        } else {
+            return abort(404);
+        }
+    }
+
+    public function activityHistory() {
+        if (auth()->user()->role == 'user') {
+            $adoptions = Adoption::join('pets', 'pets.id', '=', 'adoptions.pet_id')
+                ->join('users', 'users.id', '=', 'pets.shelter_id')
+                ->where('adoptions.user_id', auth()->user()->id)
+                ->select(['pets.*', 'users.name', 'users.address',
+                          'users.photo_path', 'users.photo_title', 'adoptions.status'])
+                ->orderBy('created_at', 'DESC')
+                ->latest()->get();
+            $lost_pet_claims = LostPetClaim::join('pets', 'pets.id', '=', 'lost_pet_claims.pet_id')
+                ->join('users', 'users.id', '=', 'pets.shelter_id')
+                ->where('lost_pet_claims.user_id', '=', auth()->user()->id)
+                ->select(['pets.*', 'users.name', 'users.address',
+                          'users.photo_path', 'users.photo_title', 'lost_pet_claims.status'])
+                ->orderBy('created_at', 'DESC')
+                ->latest()->get();
+            $donations = Donate::join('donations', 'donations.id', '=', 'donates.donation_id')
+                ->join('donation_imgs', 'donation_imgs.donation_id', '=', 'donates.donation_id')
+                ->join('users', 'users.id', '=', 'donations.shelter_id')
+                ->select(['donates.*', 'donation_imgs.path', 'donations.title'])
+                ->where([['donates.user_id', '=', auth()->user()->id],
+                         ['donation_imgs.type', '=', 'donation']])
+                ->orderBy('created_at', 'DESC')
+                ->latest()->get();
+            return view('user.activity-history',
+                compact('adoptions', 'lost_pet_claims', 'donations'));
         } else {
             return abort(404);
         }
@@ -66,7 +102,8 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        if (auth()->user()->role == 'user' || auth()->user()->role == 'volunteer') {
+        if ((auth()->user()->role == 'user' || auth()->user()->role == 'volunteer')
+            && $user->role == 'pet_shelter') {
             // get all pets in the pet shelter and related data from database
             $pets = DB::table('users')
                 ->join('pets', 'pets.shelter_id', '=', 'users.id')
@@ -82,11 +119,17 @@ class UserController extends Controller
             // display
             return view('general.user-details',
                 compact('user', 'pets', 'acc_adopt_pets', 'acc_claim_pets'));
-        } else if (auth()->user()->role == 'pet_shelter') {
-            /* database pet nya masih belum selesai */
-            $pets = DB::table('users')
-                ->join('pets', 'pets.shelter_id', '=', 'users.id')
-                ->select(['pets.*', 'users.name', 'users.address'])
+        } else if ((auth()->user()->role == 'pet_shelter' || auth()->user()->role == 'user')
+            && $user->role == 'volunteer') {
+            $pets = DB::table('pets')
+                ->join('health_checks',
+                    'health_checks.pet_id', '=', 'pets.id')
+                ->join('medical_reports',
+                    'medical_reports.health_check_id', '=', 'health_checks.id')
+                ->where([['health_checks.status', '=', 'Accepted'],
+                         ['health_checks.volunteer_id', '=', $user->id]])
+                ->select(['health_checks.checkup_date', 'pets.*'])
+                ->orderBy('health_checks.checkup_date', 'DESC')
                 ->latest()->get();
             $health_check = DB::table('health_checks')
                 ->where([['shelter_id', '=', auth()->user()->id],
@@ -96,7 +139,7 @@ class UserController extends Controller
                 ->where([['volunteer_id', '=', $user->id],
                          ['status', '=', 'Accepted']])->count();
             return view('general.user-details',
-                    compact('user','pets', 'health_check', 'accepted_request'));
+                    compact('user', 'pets', 'health_check', 'accepted_request'));
         } else {
             return abort(404);
         }
@@ -130,19 +173,21 @@ class UserController extends Controller
             $request->validate([
                 'profile_picture' => 'required|mimes:jpg,png,jpeg,gif,svg',
             ]);
-
+            if ($user->photo_title != NULL && $user->photo_path != NULL) {
+                // delete old photo
+                $title = trim(str_replace("public", "", $user->photo_path));
+                Storage::disk('public')->delete($title);
+            }
+            // get the photo
             $img = $request->file('profile_picture');
             // store the image
             $file_name = $img->getClientOriginalName();
             $img_path = $img->store('public/profile-picture');
-
             // store image details into database
             $user->update([
                 'photo_title' => $file_name,
                 'photo_path' => $img_path
             ]);
-            echo $file_name;
-            echo $img_path;
         } else {
             $request->validate([
                 'name' => ['required', 'string', 'max:255'],
@@ -154,6 +199,12 @@ class UserController extends Controller
                 'phoneNumber' => $request->get('phoneNumber'),
                 'address' => $request->get('address')
             ]);
+            if($user->role == 'user') {
+                $request->validate([
+                    'dateOfBirth' => ['required', 'date']
+                ]);
+                $user->dateOfBirth = $request->get('dateOfBirth');
+            }
             if ($request->get('identityNumber') != $user->identityNumber) {
                 $request->validate([
                     'identityNumber' => ['required', 'string', 'unique:users']
@@ -172,6 +223,11 @@ class UserController extends Controller
                 ]);
                 $user->email = $request->get('email');
                 $user->email_verified_at = NULL;
+                $user->update([
+                    'name' => $request->get('name'),
+                    'phoneNumber' => $request->get('phoneNumber'),
+                    'address' => $request->get('address')
+                ]);
                 $user->sendEmailVerificationNotification();
             }
             if ($request->get('old_password') != '' ||
@@ -186,7 +242,7 @@ class UserController extends Controller
             }
             $user->save();
         }
-        return redirect()->back();
+        return redirect()->back()->with('success', 'Profile successfully updated!');
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\SendMail;
+use App\Mail\SendVolunteerMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
@@ -18,5 +19,18 @@ class NotifyUser extends Controller
         ];
         Mail::to($email)->send(new SendMail($message));
         return 'Successfully send email!';
+    }
+
+    public function sendNotifyVolunteer($pet_shelter, $volunteer, $pet, $request, $subject) {
+        $message = [
+            'title' => 'Hello '.$pet_shelter->name.'!',
+            'request' => $request,
+            'volunteer' => $volunteer,
+            'pet_shelter' => $pet_shelter,
+            'pet' => $pet,
+            'subject' => $subject,
+        ];
+        Mail::to($pet_shelter->email)->send(new SendVolunteerMail($message));
+        return 'Successfully send email to volunteer!';
     }
 }

@@ -52,8 +52,7 @@
                             <div class="card-body">
                                 <form method="POST" action="{{route('donates.store')}}" accept-charset="utf-8" enctype="multipart/form-data">
                                     @csrf
-                                    <input id="donation_id" type="number" class="form-control" name="donation_id" value="{{ ($donation->id) }}" required hidden readonly>
-                                    <input id="user_id" type="number" class="form-control" name="user_id" value="{{ (Auth::user()->id) }}" required hidden readonly>
+                                    <input id="donation_id" type="hidden" class="form-control" name="donation_id" value="{{ Crypt::encrypt($donation->id) }}" required hidden readonly>
                                     <div class="form-group">
                                         <label class="mb-1">Full Name</label>
                                         <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" name="name" placeholder="Enter full name" value="{{ Auth::user()->name }}" required autocomplete="name">

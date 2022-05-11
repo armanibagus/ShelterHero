@@ -136,7 +136,7 @@
                         </ul>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
+                        <a href="{{ route('users.activityHistory') }}" class="nav-link {{Request::is('users/activity-history') ? 'active' : ''}}">
                             <i class="nav-icon fas fa-history"></i>
                             <p>Activity History</p>
                         </a>
@@ -147,6 +147,14 @@
                         <a href="{{ route('health-checks.index') }}" class="nav-link {{Request::is('health-checks') ? 'active' : ''}}">
                             <i class="nav-icon fas fa-heartbeat"></i>
                             <p>Pet Medical Checkup</p>
+                            @php
+                                $totalPending = \App\Models\HealthCheck::where(
+                                                [['status', '=', 'Pending'],
+                                                ['volunteer_id', '=', auth()->user()->id]])->count();
+                            @endphp
+                            @if($totalPending > 0)
+                                <span class="badge badge-danger right">{{ $totalPending }}</span>
+                            @endif
                         </a>
                     </li>
                     <li class="nav-header">Views</li>

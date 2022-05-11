@@ -1,9 +1,9 @@
 @extends('template')
 
 @section('page-title')
-    @if(Request::is('adoptions/*/edit'))
+    @if(Request::is('adoptions/*/edit') || Request::is('adoptions/*'))
         {{__('Adoption Details')}}
-    @elseif(Request::is('lost-pet-claims/*/edit'))
+    @elseif(Request::is('lost-pet-claims/*/edit') || Request::is('lost-pet-claims/*'))
         {{__('Claim Details')}}
     @endif
 @endsection
@@ -19,23 +19,43 @@
             <div class="container-fluid">
                 <div class="row mb-2">
                     <div class="col-sm-6">
-                        <h1>{{ Request::is('adoptions/*/edit') ? 'Adoption Details' : 'Claim Details' }}</h1>
+                        <h1>
+                            @if(Request::is('adoptions/*/edit') || Request::is('adoptions/*'))
+                                {{__('Adoption Details')}}
+                            @elseif(Request::is('lost-pet-claims/*/edit') || Request::is('lost-pet-claims/*'))
+                                {{__('Claim Details')}}
+                            @endif
+                        </h1>
                     </div>
                     <div class="col-sm-6">
                         <ol class="breadcrumb float-sm-right">
-                            <li class="breadcrumb-item"><a href="{{url('/pet-shelter/home')}}">Main Menu</a></li>
-                            @if($data->status == 'Pending')
-                                @if(Request::is('adoptions/*/edit'))
-                                    <li class="breadcrumb-item"><a href="{{route('adoptions.index')}}">Adoption Request</a></li>
-                                @elseif(Request::is('lost-pet-claims/*/edit'))
-                                    <li class="breadcrumb-item"><a href="{{route('lost-pet-claims.index')}}">Lost Pet Claim</a></li>
+                            <li class="breadcrumb-item">
+                                @if(Auth::user()->role == 'user')
+                                    <a href="{{url('/user/home')}}">Main Menu</a>
+                                @elseif(Auth::user()->role == 'volunteer')
+                                    <a href="{{url('/volunteer/home')}}">Main Menu</a>
+                                @elseif(Auth::user()->role == 'pet_shelter')
+                                    <a href="{{url('/pet-shelter/home')}}">Main Menu</a>
                                 @endif
-                            @elseif($data->status == 'Accepted')
-                                <li class="breadcrumb-item"><a href="{{route('pets.myPets')}}">My Pets</a></li>
+                            </li>
+                            @if(Auth::user()->role == 'pet_shelter')
+                                @if($data->status == 'Pending')
+                                    @if(Request::is('adoptions/*/edit'))
+                                        <li class="breadcrumb-item"><a href="{{route('adoptions.index')}}">Adoption Request</a></li>
+                                    @elseif(Request::is('lost-pet-claims/*/edit'))
+                                        <li class="breadcrumb-item"><a href="{{route('lost-pet-claims.index')}}">Lost Pet Claim</a></li>
+                                    @endif
+                                @elseif($data->status == 'Accepted')
+                                    <li class="breadcrumb-item"><a href="{{route('pets.myPets')}}">My Pets</a></li>
+                                @endif
                             @endif
                             <li class="breadcrumb-item"><a href="{{route('pets.show', $data->pet_id)}}">Pet Details</a></li>
                             <li class="breadcrumb-item active">
-                                {{__(Request::is('adoptions/*/edit') ? 'Adoption Details' : 'Claim Details')}}
+                                @if(Request::is('adoptions/*/edit') || Request::is('adoptions/*'))
+                                    {{__('Adoption Details')}}
+                                @elseif(Request::is('lost-pet-claims/*/edit') || Request::is('lost-pet-claims/*'))
+                                    {{__('Claim Details')}}
+                                @endif
                             </li>
                         </ol>
                     </div>
@@ -68,13 +88,15 @@
                                         <img class="profile-user-img img-fluid img-circle" src="{{ asset('artefact/dist/img/unknown.png') }}" alt="User profile picture">
                                     @endif
                                 </div>
-                                <h3 class="profile-username text-center">{{__($data->name)}}</h3>
+                                <h3 class="profile-username text-center"><strong>{{__($data->name)}}</strong></h3>
+                                @if((Request::is('adoptions/*/edit') && Auth::user()->role == 'pet_shelter') || (Request::is('adoptions/*') && Auth::user()->role == 'user'))
                                 <p class="text-muted text-center">{{__($data->occupation)}}</p>
+                                @endif
                                 <ul class="list-group list-group-unbordered mb-3">
                                     <li class="list-group-item">
                                         <b>ID Number</b> <a class="text-muted float-right">{{__($data->user_idNumber)}}</a>
                                     </li>
-                                    @if(Request::is('adoptions/*/edit'))
+                                    @if((Request::is('adoptions/*/edit') && Auth::user()->role == 'pet_shelter') || (Request::is('adoptions/*') && Auth::user()->role == 'user'))
                                         <li class="list-group-item">
                                             <strong>Age</strong> <a class="text-muted float-right">{{__($data->adopter_age)}} year(s) old</a>
                                         </li>
@@ -119,11 +141,11 @@
                     <div class="col-md-9">
                         <div class="card">
                             <div class="card-header">
-                                <h3 class="card-title text-lg text-bold">{{__(Request::is('adoptions/*/edit') ? 'Adoption Information' : 'Claim Information')}}</h3>
+                                <h3 class="card-title text-lg text-bold">{{__((Request::is('adoptions/*/edit') && Auth::user()->role == 'pet_shelter') || (Request::is('adoptions/*') && Auth::user()->role == 'user') ? 'Adoption Information' : 'Claim Information')}}</h3>
                             </div><!-- /.card-header -->
                             <div class="card-body">
                                 <div class="col-12">
-                                    @if(Request::is('adoptions/*/edit'))
+                                    @if((Request::is('adoptions/*/edit') && Auth::user()->role == 'pet_shelter') || (Request::is('adoptions/*') && Auth::user()->role == 'user'))
                                     <h6><strong>Number of Pets Owned</strong></h6>
                                     <p>
                                         {{__($data->no_of_pet_owned)}} Pet(s)
@@ -174,7 +196,7 @@
                                         {{__($data->family_member)}}
                                     </p>
                                     <hr>
-                                    @elseif(Request::is('lost-pet-claims/*/edit'))
+                                    @elseif((Request::is('lost-pet-claims/*/edit') && Auth::user()->role == 'pet_shelter') || (Request::is('lost-pet-claims/*') && Auth::user()->role == 'user'))
                                         <h6><strong>Proof of Image</strong></h6>
                                         @php
                                             $images = DB::table('claim_images')->where('claim_id', '=', $data->id)->get();
@@ -237,23 +259,35 @@
                                         {{__($data->other_information)}}
                                     </p>
                                     <hr>
+                                    <h6><strong>Status</strong></h6>
                                     @if($data->status == 'Accepted')
-                                        <h6><strong>Status</strong></h6>
-                                        <p class="text-success">
-                                            <i class="fas fa-check-circle"></i> {{__($data->status)}}
-                                        </p>
-                                        <hr>
+                                    <p class="text-success">
+                                        <i class="fas fa-check-circle"></i>
+                                    @elseif($data->status == 'Pending')
+                                    <p class="text-gray">
+                                        <i class="fas fa-spinner"></i>
+                                    @elseif($data->status == 'Rejected')
+                                    <p class="text-danger">
+                                        <i class="fas fa-times"></i>
+                                    @endif
+                                         {{__($data->status)}}
+                                    </p>
+                                    <hr>
+                                    @if($data->status == 'Accepted')
                                         <h6><strong>Delivery Date</strong></h6>
                                         <p>
                                             {{__(date('d M Y',strtotime($data->delivery_date)))}}
                                         </p>
                                         <hr>
+                                    @endif
+                                    @if($data->status != 'Pending' && $data->feedback != NULL)
                                         <h6><strong>Feedback</strong></h6>
                                         <p>
                                             {{__($data->feedback)}}
                                         </p>
                                         <hr>
-                                    @elseif($data->status == 'Pending')
+                                    @endif
+                                    @if($data->status == 'Pending' && Auth::user()->role == 'pet_shelter' && (Request::is('adoptions/*/edit') || Request::is('lost-pet-claims/*/edit')))
                                     <form method="POST" action="@if(Request::is('adoptions/*/edit')){{route('adoptions.update', $data->id)}}@elseif(Request::is('lost-pet-claims/*/edit')){{route('lost-pet-claims.update', $data->id)}}@endif">
                                         @csrf
                                         @method('PUT')

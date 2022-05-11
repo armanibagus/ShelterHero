@@ -46,7 +46,7 @@ class DataTableSeeder extends Seeder
             'name' => 'Cahaya Pet Shelter',
             'phoneNumber' => '+8209865328901',
             'address' => 'Jl Raya Kuta Utara No.12',
-            'email' => 'heyitsc@gmail.com',
+            'email' => 'heyitsc03@gmail.com',
             'email_verified_at' => '2022-04-06 12:37:30',
             'role' => 'pet_shelter',
         ]);

@@ -47,7 +47,7 @@
     <section class="content">
         <div class="row">
             @foreach($users as $user)
-                <div class="col-lg-3">
+                <div class="col-md-3">
                     <a class="btn" style="padding: 0" href="{{route('users.show', $user->id)}}">
                         <!-- Widget: user widget style 1 -->
                         <div class="card card-widget widget-user">

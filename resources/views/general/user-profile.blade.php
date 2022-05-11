@@ -6,6 +6,11 @@
 
 @section('content-wrapper')
 <div class="content-wrapper">
+    @if (session('success'))
+        <div class="alert alert-success" role="alert">
+            {{ session('success') }}
+        </div>
+    @endif
     <!-- Content Header (Page header) -->
     <section class="content-header">
         <div class="container-fluid">
@@ -37,11 +42,19 @@
                             <p class="text-muted text-center">
                                 @if($user->role == 'pet_shelter')
                                     {{__('Pet Shelter')}}
+                                @elseif($user->role == 'volunteer')
+                                    {{__('Volunteer')}}
+                                @elseif($user->role == 'user')
+                                    {{__('User')}}
                                 @endif
                             </p>
                             <ul class="list-group list-group-unbordered mb-3">
                                 <li class="list-group-item">
+                                    @if($user->role == 'volunteer' || $user->role == 'pet_shelter')
+                                    <strong>License</strong> <span class="text-muted float-right">{{__($user->identityNumber)}}</span>
+                                    @elseif($user->role == 'user')
                                     <strong>ID Number</strong> <span class="text-muted float-right">{{__($user->identityNumber)}}</span>
+                                    @endif
                                 </li>
                                 <li class="list-group-item">
                                     <strong>Username</strong> <span class="text-muted float-right">{{__($user->username)}}</span>
@@ -98,15 +111,15 @@
                                 @method('PUT')
                                 <div class="form-group text-center mb-4">
                                     <label class="btn btn-link p-0 m-0 align-baseline" for="profile-photo">
-                                        <input id="profile-photo" type="file" name="profile_picture" class="d-none custom-file-input @error('profile_picture') is-invalid @enderror" onchange="document.getElementById('submit').click();">
+                                        <input id="profile-photo" type="file" name="profile_picture" class="d-none custom-file-input @error('profile_picture') is-invalid @enderror">
                                         Change Profile Photo
                                         @error('profile_picture')
                                         <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
+                                                <strong>{{ $message }}</strong>
+                                            </span>
                                         @enderror
                                     </label>
-                                    <button type="submit" id="submit" hidden>Upload Photo</button>
+                                    <button type="submit" id="profile-photo-submit" hidden>Upload Photo</button>
                                 </div>
                             </form>
                             <form class="form-horizontal" method="POST" action="{{ route('users.update', Auth::user()->id) }}">
@@ -119,12 +132,12 @@
                                       $phName = 'full name';
                                     }
                                     else if(Auth::user()->role == 'volunteer') {
-                                      $idNumLabel = 'Medical License Number';
+                                      $idNumLabel = 'Medical License';
                                       $placeholder = 'medical license number';
                                       $phName = 'full name';
                                     }
                                     else if(Auth::user()->role == 'pet_shelter') {
-                                      $idNumLabel = 'Shelter License Number';
+                                      $idNumLabel = 'Shelter License';
                                       $placeholder = 'shelter license number';
                                       $phName = 'pet shelter name';
                                     }
@@ -298,7 +311,7 @@
                         If you did not receive the email,
                         <form class="d-inline" method="POST" action="{{ route('verification.resend') }}">
                             @csrf
-                            <button type="submit" class="btn btn-link p-0 m-0 align-baseline">{{ __('click here to request another') }}</button>.
+                            <button id="verification-button" type="submit" class="btn btn-link p-0 m-0 align-baseline">{{ __('click here to request another') }}</button>.
                         </form>
                     </div>
                 </div>

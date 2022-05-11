@@ -6,7 +6,9 @@ use App\Models\Image;
 use App\Models\Pet;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class PetController extends Controller
 {
@@ -284,35 +286,70 @@ class PetController extends Controller
      */
     public function update(Request $request, Pet $pet)
     {
-        // validate the input
-        if ($request['status'] === 'Confirmed') {
+        // filter the pet with the status
+        $pet->status == 'Confirmed' ? $edit = true : $edit = false;
+        if ($edit) {
             $request->validate([
-                'status' => 'required'
+                'nickname' => ['required', 'string', 'max:255'],
+                'petType' => ['required', 'string'],
+                'sex' => ['required', 'string'],
+                'age' => ['required'],
+                'size' => ['required', 'string'],
+                'weight' => ['required'],
+                'condition' => ['required', 'string', 'max:500']
             ]);
-        } else if ($request['status'] === 'Picked up') {
-            $request->validate([
-                'shelter_id' => 'required',
-                'status' => 'required',
-                'pickUpDate' => 'required'
+            $pet->update([
+                'nickname' => $request['nickname'],
+                'petType' => Crypt::decrypt($request['petType']),
+                'sex' => Crypt::decrypt($request['sex']),
+                'age' => $request['age'],
+                'size' => Crypt::decrypt($request['size']),
+                'weight' => $request['weight'],
+                'condition' => $request['condition']
             ]);
+            if ($request->hasFile('images')) {
+                $request->validate([
+                    'images' => 'required',
+                    'images.*' => 'mimes:jpg,png,jpeg,gif,svg'
+                ]);
+                $pet_images = Image::where('pet_id', '=', $pet->id)->get();
+                foreach ($pet_images as $image) {
+                    $image->delete();
+                    $title = trim(str_replace("public","", $image->path));
+                    Storage::disk('public')->delete($title);
+                }
+                foreach ($request->file('images') as $key => $file) {
+                    // get
+                    $path = $file->store('public/images');
+                    $name = $file->getClientOriginalName();
+                    // store
+                    $insert[$key]['title'] = $name;
+                    $insert[$key]['path'] = $path;
+                }
+                // insert image to database
+                Image::insert($insert);
+
+                // update pet_id (foreign key) in images database
+                Image::where('pet_id', null)->update(['pet_id' => $pet->id]);
+            }
+            return redirect()->route('pets.show', $pet->id);
         } else {
-            $request->validate([
-                'nickname' => 'required',
-                'petType' => 'required',
-                'sex' => 'required',
-                'age' => 'required',
-                'size' => 'required',
-                'weight' => 'required',
-                'condition' => 'required'
-            ]);
+            if ($pet->pickUpDate == NULL) {
+                $request->validate([
+                    'pickUpDate' => 'required'
+                ]);
+                $pet->update([
+                    'shelter_id' => auth()->user()->id,
+                    'status' => 'Picked Up',
+                    'pickUpDate' => $request['pickUpDate']
+                ]);
+            } else {
+                $pet->update([
+                    'status' => 'Confirmed',
+                ]);
+            }
+            return redirect()->route('pets.viewPetRegis');
         }
-
-        // update pet information
-        $pet->update($request->all());
-
-        // redirect to pet registration page
-        return redirect()->route('pets.viewPetRegis')
-            ->with('success', 'Pet successfully updated!');
     }
 
     /**

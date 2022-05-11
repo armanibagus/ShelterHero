@@ -223,7 +223,13 @@ class LostPetClaimsController extends Controller
      */
     public function show(LostPetClaim $lostPetClaim)
     {
-        //
+        if (auth()->user()->role == 'user') {
+            $data = $lostPetClaim;
+            return view('pet_shelter.confirmation-page', compact('data'));
+        }
+        else {
+            return abort(404);
+        }
     }
 
     /**

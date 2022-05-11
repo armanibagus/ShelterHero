@@ -1,9 +1,9 @@
 @extends('template')
 
 @section('page-title')
-    @if(Auth::user()->role == 'user' || Auth::user()->role == 'volunteer')
+    @if((Auth::user()->role == 'user' || Auth::user()->role == 'volunteer') && $user->role == 'pet_shelter')
         {{__('Pet Shelter Details')}}
-    @elseif(Auth::user()->role == 'pet_shelter')
+    @elseif((Auth::user()->role == 'user' || Auth::user()->role == 'pet_shelter') && $user->role == 'volunteer')
         {{__('Volunteer Details')}}
     @endif
 @endsection
@@ -15,9 +15,9 @@
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    @if(Auth::user()->role == 'user' || Auth::user()->role == 'volunteer')
+                    @if((Auth::user()->role == 'user' || Auth::user()->role == 'volunteer') && $user->role == 'pet_shelter')
                         <h1>{{__('Pet Shelter Details')}}</h1>
-                    @elseif(Auth::user()->role == 'pet_shelter')
+                    @elseif((Auth::user()->role == 'user' || Auth::user()->role == 'pet_shelter') && $user->role == 'volunteer')
                         <h1>{{__('Volunteer Details')}}</h1>
                     @endif
                 </div>
@@ -32,11 +32,13 @@
                                 <a href="{{url('/pet-shelter/home')}}">Main Menu</a>
                             @endif
                         </li>
-                        @if(Auth::user()->role == 'user' || Auth::user()->role == 'volunteer')
+                        @if((Auth::user()->role == 'user' || Auth::user()->role == 'volunteer') && $user->role == 'pet_shelter')
                             <li class="breadcrumb-item"><a href="{{route('users.index')}}">Pet Shelters</a></li>
                             <li class="breadcrumb-item active">{{__('Pet Shelter Details')}}</li>
-                        @elseif(Auth::user()->role == 'pet_shelter')
+                        @elseif((Auth::user()->role == 'user' || Auth::user()->role == 'pet_shelter') && $user->role == 'volunteer')
+                            @if(Auth::user()->role == 'pet_shelter')
                             <li class="breadcrumb-item"><a href="{{route('users.index')}}">Request Volunteer</a></li>
+                            @endif
                             <li class="breadcrumb-item active">{{__('Volunteer Details')}}</li>
                         @endif
                     </ol>
@@ -64,23 +66,25 @@
                             <p class="text-muted text-center">
                                 @if($user->role == 'pet_shelter')
                                     {{__('Pet Shelter')}}
+                                @elseif($user->role == 'volunteer')
+                                    {{__('Volunteer')}}
                                 @endif
                             </p>
                             <ul class="list-group list-group-unbordered mb-3">
+                                @if($user->role == 'pet_shelter' || $user->role == 'volunteer')
                                 <li class="list-group-item">
                                     <strong>Licenses</strong> <span class="text-muted float-right">{{__($user->identityNumber)}}</span>
                                 </li>
-                                @if(Auth::user()->role == 'pet_shelter')
-                                <li class="list-group-item text-center ">
-                                    <form method="GET" action="{{ route('health-checks.create') }}">
-                                        <input id="user_id" type="number" name="user_id" value="{{$user->id}}" hidden readonly>
-                                        <button type="submit" class="btn btn-success btn-block text-bold" >
-                                            {{ __('Send Request') }}
-                                        </button>
-                                    </form>
-                                </li>
                                 @endif
                             </ul>
+                            @if(Auth::user()->role == 'pet_shelter')
+                                <form method="GET" action="{{ route('health-checks.create') }}">
+                                    <input id="user_id" type="number" name="user_id" value="{{$user->id}}" hidden readonly>
+                                    <button type="submit" class="btn btn-success btn-block text-bold" >
+                                        {{ __('Send Request') }}
+                                    </button>
+                                </form>
+                            @endif
                         </div>
                     </div>
                     <div class="card card-primary">
@@ -107,7 +111,7 @@
                     </div>
                 </div>
                 <div class="col-md-9">
-                    @if($user->role == 'pet_shelter')
+                    @if((Auth::user()->role == 'user' || Auth::user()->role == 'volunteer') && $user->role == 'pet_shelter')
                     <div class="row">
                         <div class="col-lg-4 col-sm-4 col-12">
                             <div class="small-box bg-white shadow" style="background-color: #eadece!important;">
@@ -144,13 +148,12 @@
                         </div>
                     </div>
                     <h3 class="mt-3"><strong>Pets from {{__($user->name)}}</strong></h3>
-                    @elseif($user->role == 'volunteer')
-                    {{--/* database checkup dan appointment nya masih belum selesai */--}}
+                    @elseif((Auth::user()->role == 'pet_shelter' || Auth::user()->role == 'user') && $user->role == 'volunteer')
                     <div class="row">
                         <div class="col-md-6 col-sm-6 col-6">
                             <div class="small-box bg-white shadow" style="background-color: #eadece!important;">
                                 <div class="inner">
-                                    <h3>{{ __('0') }}</h3>
+                                    <h3>{{ __($pets->count()) }}</h3>
                                     <p>Pet Medical Checkup</p>
                                 </div>
                                 <div class="icon">
@@ -170,78 +173,120 @@
                             </div>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="card card-white">
-                                <div class="card-header" style="background-color: #eadece!important;">
-                                    <h3 class="card-title"><strong>Pets Checked by {{__($user->name)}}</strong></h3>
-                                </div>
-                                <div class="card-body">
-                                    <div class="card-body table-responsive p-0">
-                                        <table id="dataTable1" class="table table-head-fixed text-nowrap">
-                                            <thead>
-                                            <tr>
-                                                <th class="text-center">ID</th>
-                                                <th>Nickname</th>
-                                                <th>Sex</th>
-                                                <th> </th>
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-{{--                                            @foreach($health_check as $my_request)--}}
+                        @if(Auth::user()->role == 'user')
+                            <h3 class="mt-3"><strong>Pets Examined by {{__($user->name)}}</strong></h3>
+                        @endif
+                        @if(Auth::user()->role == 'pet_shelter')
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card card-white">
+                                    <div class="card-header" style="background-color: #eadece!important;">
+                                        <h3 class="card-title"><strong>Pets Examined by {{__($user->name)}}</strong></h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="card-body table-responsive p-0">
+                                            <table id="dataTable1" class="table table-head-fixed text-nowrap">
+                                                <thead>
                                                 <tr>
-                                                    <td class="text-center">{{'-'}}</td>
-                                                    <td>{{'-'}}</td>
-                                                    <td>{{'-'}}</td>
-                                                    <td><a class="btn btn-default">View <i class="fas fa-eye"></i></a></td>
+                                                    <th class="text-center">ID</th>
+                                                    <th>Nickname</th>
+                                                    <th>Date</th>
+                                                    <th> </th>
                                                 </tr>
-{{--                                            @endforeach--}}
-                                            </tbody>
-                                        </table>
+                                                </thead>
+                                                <tbody>
+                                                @foreach($pets as $pet)
+                                                    <tr>
+                                                        <td class="text-center">{{ $pet->id }}</td>
+                                                        <td>{{ $pet->nickname }}</td>
+                                                        <td>{{ \Carbon\Carbon::parse($pet->checkup_date)->isoFormat('DD MMMM YYYY') }}</td>
+                                                        <td><a class="btn btn-default" href="{{ route('pets.show', $pet->id) }}">View <i class="fas fa-eye"></i></a></td>
+                                                    </tr>
+                                                @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card card-success">
+                                    <div class="card-header">
+                                        <h3 class="card-title"><strong>Your Request</strong></h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="card-body table-responsive p-0">
+                                            <table id="dataTable5" class="table table-head-fixed text-nowrap">
+                                                <thead>
+                                                <tr>
+                                                    <th class="text-center">ID</th>
+                                                    <th>Date</th>
+                                                    <th>Status</th>
+                                                    <th> </th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                @foreach($health_check as $my_request)
+                                                    <tr>
+                                                        <td class="text-center">{{$my_request->id}}</td>
+                                                        <td>{{date('d M Y', strtotime($my_request->checkup_date))}}</td>
+                                                        <td>
+                                                        @if($my_request->status == 'Accepted')
+                                                            <strong><i class="fas fa-check-circle fa-lg text-success"></i></strong>
+                                                        @elseif($my_request->status == 'Pending')
+                                                            <strong> <i class="fas fa-spinner fa-lg text-gray"></i></strong>
+                                                        @elseif($my_request->status == 'Rejected')
+                                                            <strong><i class="fas fa-times fa-lg text-danger"></i></strong>
+                                                        @endif
+                                                        </td>
+                                                        <td><a href="{{ route('health-checks.show', $my_request->id) }}" class="btn btn-default">View <i class="fas fa-eye"></i></a></td>
+                                                    </tr>
+                                                @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="card card-success">
-                                <div class="card-header">
-                                    <h3 class="card-title"><strong>Your Request</strong></h3>
-                                </div>
-                                <div class="card-body">
-                                    <div class="card-body table-responsive p-0">
-                                        <table id="dataTable5" class="table table-head-fixed text-nowrap">
-                                            <thead>
-                                            <tr>
-                                                <th class="text-center">ID</th>
-                                                <th>Date</th>
-                                                <th>Status</th>
-                                                <th> </th>
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-                                            @foreach($health_check as $my_request)
-                                                <tr>
-                                                    <td class="text-center">{{$my_request->id}}</td>
-                                                    <td>{{date('d M Y', strtotime($my_request->checkup_date))}}</td>
-                                                    <td>
-                                                    @if($my_request->status == 'Accepted')
-                                                        <strong><i class="fas fa-check-circle fa-lg text-success"></i></strong>
-                                                    @elseif($my_request->status == 'Pending')
-                                                        <strong> <i class="fas fa-spinner fa-lg text-gray"></i></strong>
-                                                    @elseif($my_request->status == 'Rejected')
-                                                        <strong><i class="fas fa-times fa-lg text-danger"></i></strong>
+                        @else
+                            <div class="row">
+                                @foreach($pets as $pet)
+                                    <div class="col-lg-4">
+                                        <a class="btn" style="padding: 0" href="{{route('pets.show', $pet->id)}}">
+                                            <!-- Widget: user widget style 1 -->
+                                            <div class="card card-widget widget-user">
+                                                @php
+                                                    $images = DB::table('images')->get();
+                                                    $title = ''; $accepted = '';
+                                                    foreach ($images as $image)
+                                                      if($image->pet_id == $pet->id){
+                                                        $title = trim(str_replace("public/images/","", $image->path));
+                                                        break;
+                                                      }
+                                                @endphp
+                                                <div style="text-align: center">
+                                                    <img src="{{ asset('storage/images/'.$title) }}" class="img-fluid" alt="Responsive image" style="border-radius: 2%; object-fit: cover; height: 280px; width: 500px">
+                                                </div>
+                                                <div class="card-body text-center">
+                                                    <strong class="text-lg">{{$pet->nickname}}</strong>
+                                                    @if($pet->sex === 'Male')
+                                                        <i class="nav-icon text-blue fas fa-mars"></i>
+                                                    @elseif($pet->sex === 'Female')
+                                                        <i class="nav-icon text-pink fas fa-venus"></i>
                                                     @endif
-                                                    </td>
-                                                    <td><a href="{{ route('health-checks.show', $my_request->id) }}" class="btn btn-default">View <i class="fas fa-eye"></i></a></td>
-                                                </tr>
-                                            @endforeach
-                                            </tbody>
-                                        </table>
+                                                    <br>
+                                                    {{ __($pet->size) }} • {{ __($pet->petType) }}
+                                                </div>
+                                                <div class="card-footer text-sm text-right" style="padding-top: 15px">
+                                                    {{ \Carbon\Carbon::parse($pet->checkup_date)->isoFormat('DD MMMM YYYY') }}
+                                                </div>
+                                            </div>
+                                        </a>
                                     </div>
-                                </div>
+                                @endforeach
                             </div>
-                        </div>
-                    </div>
+                        @endif
                     @endif
                     @if($user->role == 'pet_shelter')
                     <div class="row">

@@ -45,7 +45,7 @@
                     }
             @endphp
             <div class="col-lg-3">
-                <a class="btn" style="padding: 0" href="{{route('donates.show', $donate->id)}}">
+                <a class="btn" style="padding: 0" href="@if($donate->status != 'Pending'){{route('donates.show', $donate->id)}} @else {{route('donates.edit', $donate->id)}}@endif">
                     <div class="card card-widget widget-user">
                         <div style="text-align: center">
                             <img src="{{ asset('storage/donation-img/'.$title) }}" class="img-fluid" alt="Responsive image" style="border-radius: 2%; object-fit: cover; height: 280px; width: 500px">
@@ -67,7 +67,7 @@
         @php
               }
             }
-            @endphp
+        @endphp
         </div>
     </section>
 </div>

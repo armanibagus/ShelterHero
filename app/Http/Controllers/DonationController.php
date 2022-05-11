@@ -29,7 +29,7 @@ class DonationController extends Controller
         }
         else if (auth()->user()->role === 'pet_shelter') {
             $allDonations = DB::table('donations')
-                ->where([['shelter_id', '=', auth()->user()->id]])->latest()->get();
+                ->where('shelter_id', '=', auth()->user()->id)->latest()->get();
             return view('general.donation-view', compact('allDonations'));
         }
         else {

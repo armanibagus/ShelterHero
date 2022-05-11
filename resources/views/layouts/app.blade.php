@@ -35,6 +35,9 @@
     }
 </style>--}}
 <body class="hold-transition {{ Request::is('login') ? 'login-page' : 'register-page' }}" style="background-color: #eadece !important">
+<div class="preloader flex-column justify-content-center align-items-center" >
+    <img class="animation__wobble" src="{{asset('artefact/dist/img/shelter-hero-logo2-light-brown.png')}}" alt="AdminLTELogo" height="60" width="60">
+</div>
 <div class="{{ Request::is('login') ? 'login-box' : 'register-box' }}">
 
     <div class="card card-outline card-primary">
@@ -55,5 +58,32 @@
 <script src="{{asset('artefact/plugins/bootstrap/js/bootstrap.bundle.min.js')}}"></script>
 <!-- App -->
 <script src="{{asset('artefact/dist/js/adminlte.min.js')}}"></script>
+@if(!Request::is('email/verify'))
+    <script>
+        $('form')
+            .each(function(){
+                $(this).data('serialized', $(this).serialize())
+            })
+            .on('change input', function(){
+
+                var changed = false;
+                var fInputs = $(":file");
+
+                for (var i=0; i<fInputs.length; i++) {
+                    changed = (fInputs[i].files.length) ? true : changed;
+                }
+
+                changed = ($(this).serialize() !== $(this).data('serialized')) ? true : changed;
+
+                $(this)
+                    .find('input:submit, button:submit')
+                    .attr('disabled', !changed)
+                ;
+            })
+            .find('input:submit, button:submit')
+            .attr('disabled', true)
+        ;
+    </script>
+@endif
 </body>
 </html>

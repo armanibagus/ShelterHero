@@ -29,8 +29,8 @@
     </section>
     @php
         $images = DB::table('donation_imgs')->latest()->get();
-        /*$allDonates = DB::table('donates')->where('donation_id', '=', $donation->id)->get();*/
-        $title = ''; $totalDonates = 0;
+        $totalDonates = \App\Models\Donate::where([['donation_id', '=', $donation->id], ['status', '=', 'Accepted']])->count();
+        $title = '';
         foreach ($images as $image) {
           if($image->donation_id == $donation->id){
             $title = trim(str_replace("public/donation-img/","", $image->path));

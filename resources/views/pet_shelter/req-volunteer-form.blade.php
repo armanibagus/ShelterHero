@@ -22,7 +22,7 @@
                         <li class="breadcrumb-item"><a href="{{url('/pet-shelter/home')}}">Main Menu</a></li>
                         <li class="breadcrumb-item"><a href="{{route('users.index')}}">Request Volunteer</a></li>
                         <li class="breadcrumb-item active"><a href="{{route('users.show', $user->id)}}">Volunteer Details</a></li>
-                        <li class="breadcrumb-item active">Request Adoption Form</li>
+                        <li class="breadcrumb-item active">Request Volunteer Form</li>
                     </ol>
                 </div>
             </div>
@@ -42,11 +42,11 @@
                         </div>
                         <div class="card-body">
                             <form method="POST" action="{{route('health-checks.store')}}">
-                                @if($total_volunteer < 1)
+                                @if($total_volunteer < 1 || count($total_pet_owned) < 1)
                                 <fieldset disabled>
                                 @endif
                                     @csrf
-                                    <input id="volunteer_id" type="number" class="form-control" name="volunteer_id" value="{{ $user->id }}" required hidden readonly>
+                                    <input id="volunteer_id" type="hidden" class="form-control" name="volunteer_id" value="{{ Crypt::encrypt($user->id) }}" required hidden readonly>
                                     <div class="form-group">
                                         <label for="checkup-date" class="mb-1">Proposed Checkup Date</label>
                                         <input id="checkup-date" type="date" class="form-control @error('checkup_date') is-invalid @enderror" name="checkup_date" value="{{ old('checkup_date') }}" required>
@@ -55,6 +55,15 @@
                                                 <strong>{{ $message }}</strong>
                                             </span>
                                         @enderror
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="select-pet" class="mb-1">Pet to be Examined</label>
+                                        <select type="text" class="form-control @error('pet_id') is-invalid @enderror" required id="select-pet" name="pet_id">
+                                            <option selected disabled value=""> ---[Select One]--- </option>
+                                            @foreach($total_pet_owned as $pet)
+                                            <option value="{{ Crypt::encrypt($pet->id) }}">{{ $pet->id .' - '. $pet->nickname }}</option>
+                                            @endforeach
+                                        </select>
                                     </div>
                                     <div class="form-group">
                                         <label for="description" class="mb-1">Description</label>
@@ -70,7 +79,7 @@
                                     <button type="submit" class="btn btn-primary float-right">
                                         {{ __('Submit') }}
                                     </button>
-                                @if($total_volunteer < 1)
+                                @if($total_volunteer < 1 || count($total_pet_owned) < 1)
                                 </fieldset>
                                 @endif
                             </form>

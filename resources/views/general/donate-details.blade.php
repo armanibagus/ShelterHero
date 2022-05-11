@@ -16,6 +16,8 @@
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
                         @if(Auth::user()->role == 'user')
+                            <li class="breadcrumb-item"><a href="{{url('/user/home')}}">Main Menu</a></li>
+                            <li class="breadcrumb-item"><a href="{{ route('users.activityHistory') }}">Activity History</a></li>
                             <li class="breadcrumb-item active">Donate Details</li>
                         @endif
                     </ol>
@@ -24,15 +26,15 @@
         </div><!-- /.container-fluid -->
     </section>
     @php
-        $images = DB::table('donation_imgs')->latest()->get();
-        /*$allDonates = DB::table('donates')->where('donation_id', '=', $donation->id)->get();*/
-        $title = ''; $totalDonates = 0;
-        foreach ($images as $image) {
-          if($image->donate_id == $donate->id){
-            $title = trim(str_replace("public/donation-img/","", $image->path));
-            break;
-          }
-        }
+        $donate_img = \App\Models\DonationImg::where('donate_id', '=', $donate->id)->first();
+        $donation_img = \App\Models\DonationImg::where('donation_id', '=', $donation->id)->first();
+        $receipt_img_title = $donation_img_title = '';
+        if ($donate_img != NULL)
+          $receipt_img_title = trim(str_replace("public/donation-img/","", $donate_img->path));
+        if($donation_img != NULL)
+          $donation_img_title = trim(str_replace("public/donation-img/","", $donation_img->path));
+
+
     @endphp
     <section class="content">
         <div class="container-fluid">
@@ -42,13 +44,16 @@
                         <img src="{{asset('artefact/dist/img/shelter-hero-logo.png')}}" style="display: block; margin: auto; width: 30%" alt="logo image">
                         <br>
                         <div class="card-header">
-                            <h2 class="card-title text-bold text-lg text-center" style="float: none">Donate Details</h2>
+                            <h2 class="card-title text-bold text-lg text-center float-none">Donate Details</h2>
                         </div>
                         @if (session('success'))
                             <div class="alert alert-success" role="alert">
                                 {{ session('success') }}
                             </div>
                         @endif
+                        <img class="img-fluid mt-4" src="{{ asset('storage/donation-img/'.$donation_img_title) }}" alt="Donation main picture" style="object-fit: cover">
+                        <h2 class="card-title text-bold text-lg text-center float-none mt-2 mb-2">{{ __($donation->title) }}</h2>
+                        <p class="mb-4">{{ __($donation->description) }}</p>
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-md-6">
@@ -71,7 +76,7 @@
                                         <dd><strong>{{ __($donate->comment) }}</strong></dd>
                                         <dt style="font-weight: 400">{{ __('Status') }}</dt>
                                         @if($donate->status == 'Pending')
-                                            <dd class="text-warning"><strong><i class="fas fa-exclamation-triangle "></i> {{ __($donate->status) }}</strong></dd>
+                                            <dd class="text-secondary"><strong><i class="fas fa-spinner"></i> {{ __($donate->status) }}</strong></dd>
                                         @elseif($donate->status == 'Accepted')
                                             <dd class="text-success"><strong><i class="fas fa-check-circle"></i> {{ __($donate->status) }}</strong></dd>
                                         @elseif($donate->status == 'Rejected')
@@ -90,21 +95,21 @@
                                 <br>
                                 <dt>{{ __('Receipt') }}</dt>
                             </dl>
-                            <img class="img-fluid" src="{{ asset('storage/donation-img/'.$title) }}" alt="Donation main picture" style="object-fit: cover">
-                            @if($donate->status == 'Pending' && Auth::user()->role == 'pet_shelter')
+                            <img class="img-fluid" src="{{ asset('storage/donation-img/'.$receipt_img_title) }}" alt="Donation main picture" style="object-fit: cover">
+                            @if(Request::is('donates/*/edit') && $donate->status == 'Pending' && Auth::user()->role == 'pet_shelter')
                             <form method="POST" action="{{route('donates.update', $donate->id)}}">
                                 @csrf
                                 @method('PUT')
                                 <div class="form-group">
-                                    <label class="mt-3">Status</label>
+                                    <label class="mt-3" for="status">Status</label>
                                     <select id="status" type="text" name="status" class="form-control @error('status') is-invalid @enderror" required>
                                         <option selected disabled value="" >---[Select one]---</option>
-                                        <option value="Rejected">Rejected</option>
-                                        <option value="Accepted">Accepted</option>
+                                        <option value="{{Crypt::encrypt('Accepted')}}">Accepted</option>
+                                        <option value="{{Crypt::encrypt('Rejected')}}">Rejected</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <label id="feedbackLabel" class="mb-1">Feedback</label>
+                                    <label id="feedbackLabel" for="feedback" class="mb-1">Feedback</label>
                                     <div class="input-group">
                                         <textarea id="feedback" type="text" class="form-control @error('feedback') is-invalid @enderror" name="feedback" placeholder="Type here..." required rows="4">{{ old('feedback') }}</textarea>
 

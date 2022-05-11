@@ -22,14 +22,15 @@
     <link rel="stylesheet" href="{{asset('artefact/plugins/datatables-responsive/css/responsive.bootstrap4.min.css')}}">
     <link rel="stylesheet" href="{{asset('artefact/plugins/datatables-buttons/css/buttons.bootstrap4.min.css')}}">
     <link rel="stylesheet" href="{{asset('artefact/plugins/icheck-bootstrap/icheck-bootstrap.min.css')}}">
-    <!-- SweetAlert2 -->
-    {{--<link rel="stylesheet" href="{{asset('artefact/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css')}}">--}}
     <!-- overlayScrollbars -->
     <link rel="stylesheet" href="{{asset('artefact/plugins/overlayScrollbars/css/OverlayScrollbars.min.css')}}">
     <!-- Theme style -->
     <link rel="stylesheet" href="{{asset('artefact/dist/css/adminlte.min.css')}}">
 </head>
 <body class="hold-transition sidebar-mini  layout-fixed">
+    <div class="preloader flex-column justify-content-center align-items-center" >
+        <img class="animation__wobble" src="{{asset('artefact/dist/img/shelter-hero-logo2-light-brown.png')}}" alt="AdminLTELogo" height="60" width="60">
+    </div>
 <!-- Site wrapper -->
 <div class="wrapper">
     <!-- Navbar -->
@@ -137,7 +138,7 @@
 <script src="{{asset('artefact/plugins/jquery/jquery.min.js')}}"></script>
 <!-- Bootstrap 4 -->
 <script src="{{asset('artefact/plugins/bootstrap/js/bootstrap.bundle.min.js')}}"></script>
-<!-- DataTables  & Plugins -->
+<!-- DataTables & Plugins -->
 <script src="{{asset('artefact/plugins/datatables/jquery.dataTables.min.js')}}"></script>
 <script src="{{asset('artefact/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js')}}"></script>
 <script src="{{asset('artefact/plugins/datatables-responsive/js/dataTables.responsive.min.js')}}"></script>
@@ -150,15 +151,7 @@
 <script src="{{asset('artefact/plugins/datatables-buttons/js/buttons.html5.min.js')}}"></script>
 <script src="{{asset('artefact/plugins/datatables-buttons/js/buttons.print.min.js')}}"></script>
 <script src="{{asset('artefact/plugins/datatables-buttons/js/buttons.colVis.min.js')}}"></script>
-<!-- SweetAlert2 -->
-{{--<script src="{{asset('artefact/plugins/sweetalert2/sweetalert2.min.js')}}"></script>--}}
-<!-- App -->
 <script src="{{asset('artefact/dist/js/adminlte.min.js')}}"></script>
-@if (Request::is('users/*/edit') && session('resent'))
-    <script>
-        $('#modal-email-confirm').modal('show');
-    </script>
-@endif
 <script>
     $(function() {
 // Multiple images preview with JavaScript
@@ -229,6 +222,51 @@
             $(this).addClass('active')
         })
     })
+
+
+
+    @if(Request::is('pets/create') || Request::is('adoptions/create*') || Request::is('lost-pet-claims/create*') ||
+        Request::is('donates/create*') || Request::is('donates/*/edit') || Request::is('donations/create') ||
+        Request::is('users/*/edit')  || Request::is('health-checks/create*') || Request::is('lost-pet-claims/*/edit') ||
+        Request::is('adoptions/*/edit') || Request::is('health-checks/*/edit') || Request::is('medical-reports/create*') ||
+        Request::is('medical-reports/1/edit') || (Request::is('pets/*/edit') && ($pet->status == 'Pending' || $pet->status == 'Confirmed')))
+        $('form')
+            .each(function(){
+                $(this).data('serialized', $(this).serialize())
+            })
+            .on('change input', function(){
+
+                var changed = false;
+                var fInputs = $(":file");
+
+                for (var i=0; i<fInputs.length; i++) {
+                    changed = (fInputs[i].files.length) ? true : changed;
+                }
+
+                changed = ($(this).serialize() !== $(this).data('serialized')) ? true : changed;
+
+                $(this)
+                    .find('input:submit, button:submit')
+                    .attr('disabled', !changed)
+                ;
+            })
+            .find('input:submit, button:submit')
+            .attr('disabled', true)
+        ;
+    @endif
+    @if (Request::is('users/*/edit'))
+        const submitPhoto = document.getElementById('profile-photo');
+        const btnSubmitPhoto = document.getElementById('profile-photo-submit');
+        submitPhoto.addEventListener('change', () =>{
+            btnSubmitPhoto.click();
+        })
+        @if (Auth::user()->email_verified_at == NULL)
+            $('#modal-email-confirm').modal('show');
+            $(document).ready(function() {
+                $('#verification-button').prop('disabled', false);
+            });
+        @endif
+    @endif
 </script>
 </body>
 </html>
