@@ -182,7 +182,7 @@
                         </ul>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
+                        <a href="{{route ('medical-reports.index')}}" class="nav-link">
                             <i class="nav-icon fas fa-history"></i>
                             <p>Pet Medical History</p>
                         </a>

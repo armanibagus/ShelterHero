@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\MedicalReport;
+use App\Models\Pet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 
@@ -21,8 +22,15 @@ class MedicalReportController extends Controller
     public function index()
     {
         if (auth()->user()->role == 'volunteer') {
-
-            return view('', compact());
+            $medical_reports = Pet::join('health_checks', 'health_checks.pet_id', '=', 'pets.id')
+                ->join('medical_reports', 'medical_reports.health_check_id', '=', 'health_checks.id')
+                ->join('users', 'users.id', '=', 'health_checks.shelter_id')
+                ->select(['health_checks.id', 'health_checks.pet_id', 'pets.nickname', 'pets.petType',
+                            'pets.size', 'pets.sex', 'users.name', 'medical_reports.created_at'])
+                ->where('health_checks.volunteer_id', '=', auth()->user()->id)
+                ->orderBy('medical_reports.created_at', 'DESC')
+                ->latest()->get();
+            return view('volunteer.view-pet-medical-history', compact('medical_reports'));
         } else {
             return abort(404);
         }
